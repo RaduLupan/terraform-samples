@@ -35,5 +35,8 @@ resource "azurerm_virtual_network" "vnet1" {
     name           = "frontend"
     address_prefix = var.frontEndSubnetAddressPrefix
   }
-  
+
+  tags = {
+    environment = "Test"
+  }
 }
