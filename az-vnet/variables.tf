@@ -15,7 +15,11 @@ variable "location" {
 
 variable "vNetAddressSpace" {
     type = string
-    description = "Address Space for your vNet in CIDR notation"
+    description = "Address space for your vNet in CIDR notation"
 }
 
+variable "frontEndSubnetAddressPrefix" {
+    type = string
+    description = "Address prefix for your front end subnet in CIDR notation"
+}
 
