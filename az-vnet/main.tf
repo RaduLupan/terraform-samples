@@ -4,8 +4,13 @@ provider "azurerm" {
     features {}
 }
 
+# Use locals block for simple constants or calculated variables https://www.terraform.io/docs/configuration/locals.html
+locals {
+    project = "TerraformSamples"
+    environment = "Test"
+}
 resource "azurerm_resource_group" "rg" {
-  name     = "terraformSamplesResourceGroup"
+  name     = "rg-${local.project}"
   location = var.location
 }
 
@@ -42,6 +47,6 @@ resource "azurerm_virtual_network" "vnet1" {
   }
 
   tags = {
-    environment = "Test"
+    environment = "${local.environment}"
   }
 }
