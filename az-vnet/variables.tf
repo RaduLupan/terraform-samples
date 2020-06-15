@@ -3,11 +3,6 @@ variable "subscriptionID" {
     description = "Target subscription ID"
 }
 
-variable "resourceGroupName" {
-    type = string
-    description = "Name of resource group"
-}
-
 variable "location" {
     type = string
     description = "Location of your resource group"

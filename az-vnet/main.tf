@@ -4,10 +4,15 @@ provider "azurerm" {
     features {}
 }
 
+resource "azurerm_resource_group" "rg" {
+  name     = "terraformSamplesResourceGroup"
+  location = var.location
+}
+
 resource "azurerm_network_security_group" "frontend-nsg" {
   name                = "frontend-nsg"
   location            = var.location
-  resource_group_name = var.resourceGroupName
+  resource_group_name = azurerm_resource_group.rg.name
 }
 
 resource "azurerm_network_security_rule" "allow-tcp-80-rule" {
@@ -21,14 +26,14 @@ resource "azurerm_network_security_rule" "allow-tcp-80-rule" {
   source_address_prefix       = "*"
   destination_address_prefix  = "*"
   description                 = "Allows HTTP from anywhere"  
-  resource_group_name         = var.resourceGroupName
+  resource_group_name         = azurerm_resource_group.rg.name
   network_security_group_name = azurerm_network_security_group.frontend-nsg.name
 }
 
 resource "azurerm_virtual_network" "vnet1" {
   name                = "virtualNetwork1"
   location            = var.location
-  resource_group_name = var.resourceGroupName
+  resource_group_name = azurerm_resource_group.rg.name
   address_space       = [var.vNetAddressSpace]
   
   subnet {
