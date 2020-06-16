@@ -18,3 +18,9 @@ variable "subnetId" {
     type = string
     description = "Subnet Id for subnet that VM will sit on"
 }
+
+variable "serverName" {
+
+    type = string
+    description = "Name of your VM"
+}
