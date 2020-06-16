@@ -7,15 +7,11 @@ provider "azurerm" {
 # Use locals block for simple constants or calculated variables https://www.terraform.io/docs/configuration/locals.html
 locals {
     project = "TerraformSamples"
-    environment = "Test"
+    environment = "dev"
 }
 
-variable "prefix" {
-  default = "tfvmex"
-}
-
-resource "azurerm_network_interface" "main" {
-  name                = "${var.prefix}-nic"
+resource "azurerm_network_interface" "nic01" {
+  name                = "nic-${var.serverName}-${local.environment}-01"
   location            = var.location
   resource_group_name = var.resourceGroup
 
@@ -26,11 +22,11 @@ resource "azurerm_network_interface" "main" {
   }
 }
 
-resource "azurerm_virtual_machine" "main" {
-  name                  = "${var.prefix}-vm"
+resource "azurerm_virtual_machine" "vm01" {
+  name                  = "${var.serverName}"
   location              = var.location
   resource_group_name   = var.resourceGroup
-  network_interface_ids = [azurerm_network_interface.main.id]
+  network_interface_ids = [azurerm_network_interface.nic01.id]
   vm_size               = "Standard_DS1_v2"
 
   # Uncomment this line to delete the OS disk automatically when deleting the VM
@@ -46,13 +42,13 @@ resource "azurerm_virtual_machine" "main" {
     version   = "latest"
   }
   storage_os_disk {
-    name              = "myosdisk1"
+    name              = "os-disk-${var.serverName}"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
   os_profile {
-    computer_name  = "${var.prefix}-vm1"
+    computer_name  = "${var.serverName}"
     admin_username = "azureadmin"
     admin_password = "Password1234!"
   }
@@ -60,6 +56,6 @@ resource "azurerm_virtual_machine" "main" {
     disable_password_authentication = false
   }
   tags = {
-    environment = "staging"
+    environment = "${local.environment}"
   }
 }
