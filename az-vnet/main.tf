@@ -6,8 +6,8 @@ provider "azurerm" {
 
 # Use locals block for simple constants or calculated variables https://www.terraform.io/docs/configuration/locals.html
 locals {
-    project = "TerraformSamples"
-    environment = "Test"
+    project = "terraform-samples"
+    environment = "dev"
 }
 resource "azurerm_resource_group" "rg" {
   name     = "rg-${local.project}"
@@ -15,7 +15,7 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_network_security_group" "frontend-nsg" {
-  name                = "frontend-nsg"
+  name                = "nsg-frontend"
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
 }
@@ -40,13 +40,21 @@ resource "azurerm_virtual_network" "vnet1" {
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
   address_space       = [var.vNetAddressSpace]
-  
-  subnet {
-    name           = "frontend"
-    address_prefix = var.frontEndSubnetAddressPrefix
-  }
 
   tags = {
     environment = "${local.environment}"
+    project = "${local.project}"
   }
+}
+
+resource "azurerm_subnet" "subnet1" {
+  name                 = "frontend"
+  resource_group_name  = azurerm_resource_group.rg.name
+  virtual_network_name = azurerm_virtual_network.vnet1.name
+  address_prefix       = var.frontEndSubnetAddressPrefix
+}
+
+resource "azurerm_subnet_network_security_group_association" "frontend-nsg-association" {
+  subnet_id                 = azurerm_subnet.subnet1.id
+  network_security_group_id = azurerm_network_security_group.frontend-nsg.id
 }
