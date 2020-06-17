@@ -19,6 +19,7 @@ resource "azurerm_network_interface" "nic01" {
     name                          = "IPconfiguration1"
     subnet_id                     = var.subnetId
     private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.pip01.id
   }
 }
 
@@ -55,6 +56,18 @@ resource "azurerm_virtual_machine" "vm01" {
   os_profile_linux_config {
     disable_password_authentication = false
   }
+  tags = {
+    environment = "${local.environment}"
+    project = "${local.project}"
+  }
+}
+
+resource "azurerm_public_ip" "pip01" {
+  name                = "PublicIp1"
+  resource_group_name = var.resourceGroup
+  location            = var.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
   tags = {
     environment = "${local.environment}"
     project = "${local.project}"
