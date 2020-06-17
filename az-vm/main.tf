@@ -6,12 +6,12 @@ provider "azurerm" {
 
 # Use locals block for simple constants or calculated variables https://www.terraform.io/docs/configuration/locals.html
 locals {
-    project = "TerraformSamples"
+    project = "terraform-samples"
     environment = "dev"
 }
 
 resource "azurerm_network_interface" "nic01" {
-  name                = "nic-${var.serverName}-${local.environment}-01"
+  name                = "nic-${var.serverName}"
   location            = var.location
   resource_group_name = var.resourceGroup
 
@@ -23,11 +23,11 @@ resource "azurerm_network_interface" "nic01" {
 }
 
 resource "azurerm_virtual_machine" "vm01" {
-  name                  = "${var.serverName}"
+  name                  = var.serverName
   location              = var.location
   resource_group_name   = var.resourceGroup
   network_interface_ids = [azurerm_network_interface.nic01.id]
-  vm_size               = "Standard_DS1_v2"
+  vm_size               = "Standard_B1ms"
 
   # Uncomment this line to delete the OS disk automatically when deleting the VM
   delete_os_disk_on_termination = true
@@ -48,7 +48,7 @@ resource "azurerm_virtual_machine" "vm01" {
     managed_disk_type = "Standard_LRS"
   }
   os_profile {
-    computer_name  = "${var.serverName}"
+    computer_name  = var.serverName
     admin_username = "azureadmin"
     admin_password = "Password1234!"
   }
@@ -57,5 +57,6 @@ resource "azurerm_virtual_machine" "vm01" {
   }
   tags = {
     environment = "${local.environment}"
+    project = "${local.project}"
   }
 }
