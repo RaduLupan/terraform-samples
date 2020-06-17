@@ -18,3 +18,7 @@ variable "frontEndSubnetAddressPrefix" {
     description = "Address prefix for your front end subnet in CIDR notation"
 }
 
+variable "allowedSshAddressPrefix" {
+    type = string
+    description = "Address prefix for your range of IPs allowed for SSH in CIDR notation"
+}

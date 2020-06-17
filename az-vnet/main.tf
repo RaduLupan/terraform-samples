@@ -35,6 +35,21 @@ resource "azurerm_network_security_rule" "allow-tcp-80-rule" {
   network_security_group_name = azurerm_network_security_group.frontend-nsg.name
 }
 
+resource "azurerm_network_security_rule" "allow-ssh-rule" {
+  name                        = "allow-tcp-22"
+  priority                    = 110
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "*"
+  source_address_prefix       = var.allowedSshAddressPrefix
+  destination_address_prefix  = "*"
+  description                 = "Allows SSH from restricted CIDR range"  
+  resource_group_name         = azurerm_resource_group.rg.name
+  network_security_group_name = azurerm_network_security_group.frontend-nsg.name
+}
+
 resource "azurerm_virtual_network" "vnet1" {
   name                = "virtualNetwork1"
   location            = var.location
