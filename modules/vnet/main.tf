@@ -65,3 +65,11 @@ resource "azurerm_subnet_network_security_group_association" "frontend-nsg-assoc
   subnet_id                 = azurerm_subnet.subnet1.id
   network_security_group_id = azurerm_network_security_group.frontend-nsg.id
 }
+
+output "rg-name" {
+  value = azurerm_resource_group.rg.name
+}
+
+output "fe-nsg-name" {
+  value = azurerm_network_security_group.frontend-nsg.name
+}
