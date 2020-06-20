@@ -13,22 +13,33 @@ resource "azurerm_network_security_group" "frontend-nsg" {
   resource_group_name = azurerm_resource_group.rg.name
 }
 
-resource "azurerm_network_security_rule" "allow-tcp-80-rule" {
-  name                        = "allow-tcp-80"
-  priority                    = 100
+variable "public_nsg_inbound_rules" {
+  type        = map
+  description = "A map of allowed inbound ports and their priority values"
+  default     = {
+    100 = 80
+    101 = 443
+  }
+
+}
+
+resource "azurerm_network_security_rule" "nsg_inbound_rule" {
+  for_each = var.public_nsg_inbound_rules
+  name                        = "allow-tcp-${each.value}"
+  priority                    = each.key
   direction                   = "Inbound"
   access                      = "Allow"
   protocol                    = "Tcp"
   source_port_range           = "*"
-  destination_port_range      = "*"
+  destination_port_range      = each.value
   source_address_prefix       = "*"
   destination_address_prefix  = "*"
-  description                 = "Allows HTTP from anywhere"  
+  description                 = "Allows TCP ${each.value} from anywhere"  
   resource_group_name         = azurerm_resource_group.rg.name
   network_security_group_name = azurerm_network_security_group.frontend-nsg.name
 }
 
-resource "azurerm_network_security_rule" "allow-ssh-rule" {
+resource "azurerm_network_security_rule" "allow_ssh_rule" {
   name                        = "allow-tcp-22"
   priority                    = 110
   direction                   = "Inbound"
