@@ -81,6 +81,6 @@ output "rg-name" {
   value = azurerm_resource_group.rg.name
 }
 
-output "fe-nsg-name" {
-  value = azurerm_network_security_group.frontend-nsg.name
+output "fe-subnet-id" {
+  value = azurerm_subnet.subnet1.id
 }
