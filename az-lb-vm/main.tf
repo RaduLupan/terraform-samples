@@ -68,7 +68,7 @@ resource "azurerm_virtual_machine" "web-vm" {
   tags = {
     environment = "${local.environment}"
     project = "${local.project}"
-     role= "${local.role}"
+    role= "${local.role}"
   }
 }
 
@@ -83,7 +83,7 @@ resource "azurerm_virtual_machine_extension" "custom_script" {
 
   settings = <<SETTINGS
     {
-        "commandToExecute": "apt-get update && apt-get install apache2 -y"
+        "commandToExecute": "apt-get -y update && apt-get install -y apache2"
     }
 SETTINGS
 }
