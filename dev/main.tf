@@ -14,11 +14,13 @@ module "vnet" {
     allowedSshAddressPrefix     = "135.23.87.216/32"
 }
 
-module "lb" {
-    source = "../modules/web-tier/lb"
+module "web-tier" {
+    source = "../modules/web-tier"
     
     subscriptionID              = var.subscriptionID
     location                    = "eastus2"
     resourceGroup               = module.vnet.rg-name 
+    subnetId                    = module.vnet.fe-subnet-id
+    serverName                  = "lin-vm"
+    vmNumber                    = 2
 }
-
