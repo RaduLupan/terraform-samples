@@ -73,7 +73,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "nic_backe
   backend_address_pool_id = azurerm_lb_backend_address_pool.web_lb_pool.id
 }
 
-resource "azurerm_virtual_machine" "web-vm" {
+resource "azurerm_virtual_machine" "web_vm" {
   count = var.vmNumber
 
   name                  = "vm-${var.serverName}-${count.index}"
@@ -116,7 +116,7 @@ resource "azurerm_virtual_machine_extension" "custom_script" {
   count = var.vmNumber
 
   name                 = "var.serverName-${count.index}"
-  virtual_machine_id   = element(azurerm_virtual_machine.web-vm.*.id, count.index)
+  virtual_machine_id   = element(azurerm_virtual_machine.web_vm.*.id, count.index)
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
   type_handler_version = "2.0"
@@ -126,4 +126,26 @@ resource "azurerm_virtual_machine_extension" "custom_script" {
         "commandToExecute": "apt-get -y update && apt-get install -y apache2"
     }
 SETTINGS
+}
+
+## Creates inbound NAT rules on the LB for each VM on different frontend port but there is no target parameter to point to the VM
+resource "azurerm_lb_nat_rule" "web_lb_nat_rule" {
+  count = var.vmNumber
+
+  resource_group_name            = var.resourceGroup
+  loadbalancer_id                = azurerm_lb.web_loadbalancer.id
+  name                           = "ssh-var.serverName-${count.index}"
+  protocol                       = "Tcp"
+  frontend_port                  = "5000${count.index}"
+  backend_port                   = 22
+  frontend_ip_configuration_name = "LB-PublicIPAddress"
+}
+
+## Creates NAT rule association for each VM's NIC in effect completing the target part of the inbound NAT rules
+resource "azurerm_network_interface_nat_rule_association" "nic_nat_rule_association" {
+  count = var.vmNumber
+
+  network_interface_id  = element(azurerm_network_interface.nic.*.id, count.index)
+  ip_configuration_name = "IPconfiguration-${count.index}"
+  nat_rule_id           = element(azurerm_lb_nat_rule.web_lb_nat_rule.*.id, count.index)
 }
