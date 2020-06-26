@@ -13,12 +13,13 @@ The examples do not necessarily follow best practices, they just illustrate how 
 
 To deploy an example just fill in your values for the input parameters in the corresponding **terraform.tvars** file and from the folder run
 
-**terraform init**
+```
+terraform init
 
-**terraform plan**
+terraform plan
 
-**terraform apply**
-
+terraform apply
+```
 The **modules** folder contains child modules that can be invoked to build consistent environments. There are only two modules there for now a vnet and a web-tier with many more to come.
 
 The **environments** folder contains root modules that build environments by calling the child modules. 
