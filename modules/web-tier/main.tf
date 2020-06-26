@@ -5,7 +5,7 @@ locals {
 }
 
 resource "azurerm_public_ip" "pip01" {
-  name                = "LBPublicIp"
+  name                = "LB-PublicIp"
   resource_group_name = var.resourceGroup
   location            = var.location
   allocation_method   = "Static"
@@ -13,7 +13,7 @@ resource "azurerm_public_ip" "pip01" {
 }
 
 resource "azurerm_lb" "web_loadbalancer" {
-  name                = "WebLoadBalancer"
+  name                = "Web-LoadBalancer"
   location            = var.location
   resource_group_name = var.resourceGroup
   sku                 = "Standard"
@@ -134,7 +134,7 @@ resource "azurerm_lb_nat_rule" "web_lb_nat_rule" {
 
   resource_group_name            = var.resourceGroup
   loadbalancer_id                = azurerm_lb.web_loadbalancer.id
-  name                           = "ssh-var.serverName-${count.index}"
+  name                           = "ssh-${var.serverName}-${count.index}"
   protocol                       = "Tcp"
   frontend_port                  = "5000${count.index}"
   backend_port                   = 22
