@@ -5,7 +5,7 @@ provider "azurerm" {
 }
 
 module "vnet" {
-    source = "../modules/vnet"
+    source = "../../modules/vnet"
     
     subscriptionID              = var.subscriptionID
     location                    = "eastus2"
@@ -15,7 +15,7 @@ module "vnet" {
 }
 
 module "web-tier" {
-    source = "../modules/web-tier"
+    source = "../../modules/web-tier"
     
     subscriptionID              = var.subscriptionID
     location                    = "eastus2"
