@@ -146,6 +146,6 @@ resource "azurerm_network_interface_nat_rule_association" "nic_nat_rule_associat
   count = var.vmNumber
 
   network_interface_id  = element(azurerm_network_interface.nic.*.id, count.index)
-  ip_configuration_name = "IPconfiguration-${count.index}"
+  ip_configuration_name = "ip-config-${count.index}"
   nat_rule_id           = element(azurerm_lb_nat_rule.web_lb_nat_rule.*.id, count.index)
 }
