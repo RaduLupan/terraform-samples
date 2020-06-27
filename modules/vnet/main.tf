@@ -7,7 +7,7 @@ resource "azurerm_resource_group" "rg" {
   location = var.location
 }
 
-resource "azurerm_network_security_group" "frontend-nsg" {
+resource "azurerm_network_security_group" "frontend_nsg" {
   name                = "nsg-frontend"
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
@@ -36,7 +36,7 @@ resource "azurerm_network_security_rule" "nsg_inbound_rule" {
   destination_address_prefix  = "*"
   description                 = "Allows TCP ${each.value} from anywhere"  
   resource_group_name         = azurerm_resource_group.rg.name
-  network_security_group_name = azurerm_network_security_group.frontend-nsg.name
+  network_security_group_name = azurerm_network_security_group.frontend_nsg.name
 }
 
 resource "azurerm_network_security_rule" "allow_ssh_rule" {
@@ -51,11 +51,11 @@ resource "azurerm_network_security_rule" "allow_ssh_rule" {
   destination_address_prefix  = "*"
   description                 = "Allows SSH from restricted CIDR range"  
   resource_group_name         = azurerm_resource_group.rg.name
-  network_security_group_name = azurerm_network_security_group.frontend-nsg.name
+  network_security_group_name = azurerm_network_security_group.frontend_nsg.name
 }
 
 resource "azurerm_virtual_network" "vnet1" {
-  name                = "virtualNetwork1"
+  name                = "virtual-network-1"
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
   address_space       = [var.vNetAddressSpace]
@@ -72,9 +72,9 @@ resource "azurerm_subnet" "subnet1" {
   address_prefix       = var.frontEndSubnetAddressPrefix
 }
 
-resource "azurerm_subnet_network_security_group_association" "frontend-nsg-association" {
+resource "azurerm_subnet_network_security_group_association" "frontend_nsg_association" {
   subnet_id                 = azurerm_subnet.subnet1.id
-  network_security_group_id = azurerm_network_security_group.frontend-nsg.id
+  network_security_group_id = azurerm_network_security_group.frontend_nsg.id
 }
 
 output "rg-name" {
