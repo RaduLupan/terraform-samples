@@ -9,8 +9,6 @@ The **examples** folder contains stand alone configurations that can be deployed
 **az-vm** creates:
 * 1 x vm running Ubuntu with 1 public IP	
  
-The examples do not necessarily follow best practices, they just illustrate how components are wired together or certain language techniques.
-
 To deploy an example just fill in your values for the input parameters in the corresponding **terraform.tvars** file and from the folder run
 
 ```
