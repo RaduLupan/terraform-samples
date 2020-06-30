@@ -62,6 +62,21 @@ resource "azurerm_virtual_machine" "vm01" {
   }
 }
 
+resource "azurerm_virtual_machine_extension" "custom_script" {
+  name                 = var.serverName
+  virtual_machine_id   = azurerm_virtual_machine.vm01.id
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.0"
+
+  ## Install Azure CLI on Ubuntu as per https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-apt?view=azure-cli-latest
+  settings = <<SETTINGS
+    {
+        "commandToExecute": "curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash"
+    }
+SETTINGS
+}
+
 resource "azurerm_public_ip" "pip01" {
   name                = "PublicIp1"
   resource_group_name = var.resourceGroup
