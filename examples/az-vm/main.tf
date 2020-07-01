@@ -56,6 +56,10 @@ resource "azurerm_virtual_machine" "vm01" {
   os_profile_linux_config {
     disable_password_authentication = false
   }
+  identity {
+    type = "SystemAssigned"
+  }
+
   tags = {
     environment = "${local.environment}"
     project = "${local.project}"
@@ -87,4 +91,14 @@ resource "azurerm_public_ip" "pip01" {
     environment = "${local.environment}"
     project = "${local.project}"
   }
+}
+
+data "azurerm_subscription" "current" {}
+
+## The Service Principal that Terraform uses needs to be able to create RBAC role assignments on the defined scope.
+## I had to elevate my Terraform Service Principal to Owner in order to be able to assign the Contributor role to the VM.
+resource "azurerm_role_assignment" "rbac_role_assignment_vm01" {
+  scope              = data.azurerm_subscription.current.id
+  role_definition_name = "Contributor"
+  principal_id       = lookup(azurerm_virtual_machine.vm01.identity[0], "principal_id")
 }
