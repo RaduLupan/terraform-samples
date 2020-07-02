@@ -4,8 +4,8 @@ provider "azurerm" {
     features {}
 }
 
-module "vnet" {
-    source = "../../modules/vnet"
+module "network-tier" {
+    source = "../../modules/network-tier"
     
     subscriptionID              = var.subscriptionID
     location                    = "eastus2"
