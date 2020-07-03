@@ -4,8 +4,8 @@ provider "azurerm" {
     features {}
 }
 
-module "network-tier" {
-    source = "../../modules/network-tier"
+module "network" {
+    source = "../../modules/network"
     
     subscriptionID              = var.subscriptionID
     location                    = "eastus2"
@@ -14,8 +14,8 @@ module "network-tier" {
     allowedSshAddressPrefix     = "135.23.87.216/32"
 }
 
-module "web-tier" {
-    source = "../../modules/web-tier"
+module "web" {
+    source = "../../modules/web"
     
     subscriptionID              = var.subscriptionID
     location                    = "eastus2"
