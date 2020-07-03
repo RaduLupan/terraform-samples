@@ -2,6 +2,8 @@ provider "azurerm" {
     version = "2.0.0"
     subscription_id = var.subscriptionID
     features {
+        # Terraform will automatically recover a soft-deleted Key Vault during creation if one is found.
+        # This feature opts out of this behaviour.
         key_vault {
             purge_soft_delete_on_destroy = true
         }
@@ -43,6 +45,15 @@ resource "azurerm_key_vault" "az_key_vault" {
       "get",
     ]
   }
+
+  # Boolean flag to specify whether Azure Virtual Machines are permitted to retrieve certificates stored as secrets from the key vault. Defaults to false.
+  enabled_for_deployment = true
+
+  # Uncomment this line if Azure Disk Encryption is permitted to retrieve secrets from the vault and unwrap keys.
+  # enabled_for_disk_encryption = true
+
+  # Uncomment this line if Azure Resource Manager is permitted to retrieve secrets from the key vault.
+  # enabled_for_template_deployment = true
 
   network_acls {
     default_action = "Deny"
