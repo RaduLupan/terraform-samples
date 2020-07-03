@@ -56,8 +56,9 @@ resource "azurerm_key_vault" "az_key_vault" {
   # enabled_for_template_deployment = true
 
   network_acls {
-    default_action = "Deny"
-    bypass         = "AzureServices"
+    default_action             = "Deny"
+    bypass                     = "AzureServices"
+    virtual_network_subnet_ids = var.subnetIds
   }
 
   tags = {

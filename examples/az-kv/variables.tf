@@ -12,3 +12,8 @@ variable "resourceGroup" {
     type = string
     description = "Name of your resource group"
 }
+
+variable "subnetIds" {
+    type = list(string)
+    description = "Subnet Ids for subnets that will connect to Azure Key Vault via service endpoints"
+}
