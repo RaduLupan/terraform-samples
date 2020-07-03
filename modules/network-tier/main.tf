@@ -1,7 +1,9 @@
-# Use locals block for simple constants or calculated variables https://www.terraform.io/docs/configuration/locals.html
+# Use locals block for simple constants or calculated variables. 
+# https://www.terraform.io/docs/configuration/locals.html
 locals {
     project = "terraform-samples-modules"
 }
+
 resource "azurerm_resource_group" "rg" {
   name     = "rg-${local.project}"
   location = var.location
@@ -23,6 +25,7 @@ variable "public_nsg_inbound_rules" {
 
 }
 
+# Rules created in for_each loop based on mapped port-priority values.
 resource "azurerm_network_security_rule" "nsg_inbound_rule" {
   for_each = var.public_nsg_inbound_rules
   name                        = "allow-tcp-${each.value}"
@@ -39,6 +42,8 @@ resource "azurerm_network_security_rule" "nsg_inbound_rule" {
   network_security_group_name = azurerm_network_security_group.frontend_nsg.name
 }
 
+# SSH is only allowed from certain source_address_prefix so this rule is created separately.
+# Ideally I want this rule to be built in the same for_each loop.
 resource "azurerm_network_security_rule" "allow_ssh_rule" {
   name                        = "allow-tcp-22"
   priority                    = 110

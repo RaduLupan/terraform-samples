@@ -128,7 +128,7 @@ resource "azurerm_virtual_machine_extension" "custom_script" {
 SETTINGS
 }
 
-## Creates inbound NAT rules on the LB for each VM on different frontend port but there is no target parameter to point to the VM
+# Creates inbound NAT rules on the LB for each VM on different frontend port but there is no target parameter to point to the VM.
 resource "azurerm_lb_nat_rule" "web_lb_nat_rule" {
   count = var.vmNumber
 
@@ -141,7 +141,7 @@ resource "azurerm_lb_nat_rule" "web_lb_nat_rule" {
   frontend_ip_configuration_name = "lb-public-ip"
 }
 
-## Creates NAT rule association for each VM's NIC in effect completing the target part of the inbound NAT rules
+# Creates NAT rule association for each VM's NIC in effect completing the target part of the inbound NAT rules.
 resource "azurerm_network_interface_nat_rule_association" "nic_nat_rule_association" {
   count = var.vmNumber
 
