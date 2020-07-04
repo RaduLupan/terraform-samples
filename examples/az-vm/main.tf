@@ -4,7 +4,7 @@ provider "azurerm" {
     features {}
 }
 
-# Use locals block for simple constants or calculated variables https://www.terraform.io/docs/configuration/locals.html
+# Use locals block for simple constants or calculated variables. https://www.terraform.io/docs/configuration/locals.html
 locals {
     project = "terraform-samples"
     environment = "dev"
@@ -30,10 +30,10 @@ resource "azurerm_virtual_machine" "vm01" {
   network_interface_ids = [azurerm_network_interface.nic01.id]
   vm_size               = "Standard_B1ms"
 
-  # Uncomment this line to delete the OS disk automatically when deleting the VM
+  # Uncomment this line to delete the OS disk automatically when deleting the VM.
   delete_os_disk_on_termination = true
 
-  # Uncomment this line to delete the data disks automatically when deleting the VM
+  # Uncomment this line to delete the data disks automatically when deleting the VM.
   # delete_data_disks_on_termination = true
 
   storage_image_reference {
@@ -73,7 +73,7 @@ resource "azurerm_virtual_machine_extension" "custom_script" {
   type                 = "CustomScript"
   type_handler_version = "2.0"
 
-  ## Install Azure CLI on Ubuntu as per https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-apt?view=azure-cli-latest
+  # Install Azure CLI on Ubuntu as per https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-apt?view=azure-cli-latest
   settings = <<SETTINGS
     {
         "commandToExecute": "curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash"
@@ -93,12 +93,16 @@ resource "azurerm_public_ip" "pip01" {
   }
 }
 
-data "azurerm_subscription" "current" {}
+# Use this data source to access information about an existing Resource Group.
+# We will need the Resource Group Id to scope the rbac role assignement for vm01.
+data "azurerm_resource_group" "current" {
+  name = var.resourceGroup
+}
 
-## The Service Principal that Terraform uses needs to be able to create RBAC role assignments on the defined scope.
-## I had to elevate my Terraform Service Principal to Owner in order to be able to assign the Contributor role to the VM.
+# The Service Principal that Terraform uses needs to be able to create RBAC role assignments on the defined scope.
+# I had to elevate my Terraform Service Principal to Owner in order to be able to assign the Contributor role to the VM.
 resource "azurerm_role_assignment" "rbac_role_assignment_vm01" {
-  scope              = data.azurerm_subscription.current.id
+  scope              = data.azurerm_resource_group.current.id
   role_definition_name = "Contributor"
   principal_id       = lookup(azurerm_virtual_machine.vm01.identity[0], "principal_id")
 }
