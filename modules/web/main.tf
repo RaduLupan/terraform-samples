@@ -1,7 +1,7 @@
 locals {
     project = "terraform-samples-modules"
     environment = "dev"
-    role= "web-tier"
+    role= "web"
 }
 
 resource "azurerm_public_ip" "pip1" {
