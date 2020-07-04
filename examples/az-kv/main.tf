@@ -66,9 +66,22 @@ resource "azurerm_key_vault_access_policy" "web_key_vault_access_policy" {
   
   key_permissions = [
     "get",
+    "list",
+    "create",
+    "update",
   ]
 
   secret_permissions = [
     "get",
+    "list",
+    "set",
+    "restore",
+  ]
+
+  certificate_permissions = [
+    "get",
+    "list",
+    "create",
+    "update",
   ]
 }
