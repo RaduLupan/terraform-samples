@@ -1,7 +1,13 @@
 provider "azurerm" {
-    version         = "2.0.0"
+    version         = "2.10.0"
     subscription_id = var.subscriptionID
-    features {}
+    features {
+        # Terraform will automatically recover a soft-deleted Key Vault during creation if one is found.
+        # This feature opts out of this behaviour.
+        key_vault {
+            purge_soft_delete_on_destroy = true
+        }
+    }
 }
 
 module "network" {
