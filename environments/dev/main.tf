@@ -1,4 +1,5 @@
 provider "azurerm" {
+    # Version 2.10.0 required in order to be able to export the identity of a VM.
     version         = "2.10.0"
     subscription_id = var.subscriptionID
     features {
@@ -25,8 +26,19 @@ module "web" {
     
     subscriptionID              = var.subscriptionID
     location                    = "eastus2"
-    resourceGroup               = module.vnet.rg-name 
-    subnetId                    = module.vnet.fe-subnet-id
+    resourceGroup               = module.network.rg-name 
+    subnetId                    = module.network.fe-subnet-id
+    serverName                  = "lin-vm"
+    vmNumber                    = 2
+}
+
+module "global" {
+    source = "../../modules/global"
+    
+    subscriptionID              = var.subscriptionID
+    location                    = "eastus2"
+    resourceGroup               = module.network.rg-name 
+    subnetIds                   = [module.network.fe-subnet-id]
     serverName                  = "lin-vm"
     vmNumber                    = 2
 }
