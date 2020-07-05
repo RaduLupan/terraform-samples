@@ -74,7 +74,8 @@ resource "azurerm_subnet" "subnet1" {
   name                 = "frontend"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet1.name
-  address_prefix       = var.frontEndSubnetAddressPrefix
+  address_prefixes     = [var.frontEndSubnetAddressPrefix]
+  service_endpoints    =["Microsoft.KeyVault"] 
 }
 
 resource "azurerm_subnet_network_security_group_association" "frontend_nsg_association" {
