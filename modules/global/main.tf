@@ -35,7 +35,7 @@ resource "azurerm_key_vault" "az_key_vault" {
   tags = {
     environment = "${local.environment}"
     project     = "${local.project}"
-    role=       = "${local.role}"
+    role        = "${local.role}"
   }
 }
 
@@ -43,38 +43,6 @@ resource "azurerm_key_vault" "az_key_vault" {
 data "azurerm_virtual_machine" "web" {
   count = var.vmNumber
   
-  name                = "data-${var.serverName}-${count.index}"
+  name                = "vm-${var.serverName}-${count.index}"
   resource_group_name = var.resourceGroup
-}
-
-resource "azurerm_key_vault_access_policy" "web_key_vault_access_policy" {
-  count = var.vmNumber
-
-  key_vault_id = azurerm_key_vault.az_key_vault.id
-
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  # In order to be able to export the identity of a VM I had to upgrade the provider version to 2.10.0
-  # https://github.com/terraform-providers/terraform-provider-azurerm/pull/6826
-  object_id    = "data.azurerm_virtual_machine.web[${count.index}].identity.0.principal_id"
-  
-  key_permissions = [
-    "get",
-    "list",
-    "create",
-    "update",
-  ]
-
-  secret_permissions = [
-    "get",
-    "list",
-    "set",
-    "restore",
-  ]
-
-  certificate_permissions = [
-    "get",
-    "list",
-    "create",
-    "update",
-  ]
 }
