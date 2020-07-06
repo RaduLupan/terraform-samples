@@ -10,31 +10,30 @@ locals {
     environment = "dev"
 }
 
-resource "azurerm_network_interface" "nic01" {
-  name                = "nic-${var.serverName}"
+resource "azurerm_network_interface" "nic" {
+  count = var.vmNumber
+
+  name                = "nic-${var.serverName}-${count.index}"
   location            = var.location
   resource_group_name = var.resourceGroup
 
   ip_configuration {
-    name                          = "IPconfiguration1"
-    subnet_id                     = var.subnetId
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.pip01.id
+    name                                    = "ip-config-${count.index}"
+    subnet_id                               = var.subnetId
+    private_ip_address_allocation           = "Dynamic"
   }
 }
 
-resource "azurerm_virtual_machine" "vm01" {
-  name                  = var.serverName
+resource "azurerm_virtual_machine" "vm" {
+  count = var.vmNumber
+
+  name                  = "vm-${var.serverName}-${count.index}"
   location              = var.location
   resource_group_name   = var.resourceGroup
-  network_interface_ids = [azurerm_network_interface.nic01.id]
+  network_interface_ids = [element(azurerm_network_interface.nic.*.id, count.index)]
   vm_size               = "Standard_B1ms"
 
-  # Uncomment this line to delete the OS disk automatically when deleting the VM.
   delete_os_disk_on_termination = true
-
-  # Uncomment this line to delete the data disks automatically when deleting the VM.
-  # delete_data_disks_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"
@@ -43,13 +42,13 @@ resource "azurerm_virtual_machine" "vm01" {
     version   = "latest"
   }
   storage_os_disk {
-    name              = "os-disk-${var.serverName}"
+    name              = "os-disk-${var.serverName}-${count.index}"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
   os_profile {
-    computer_name  = var.serverName
+    computer_name  = "var.serverName-${count.index}"
     admin_username = "azureadmin"
     admin_password = "Password1234!"
   }
@@ -67,8 +66,10 @@ resource "azurerm_virtual_machine" "vm01" {
 }
 
 resource "azurerm_virtual_machine_extension" "custom_script" {
-  name                 = var.serverName
-  virtual_machine_id   = azurerm_virtual_machine.vm01.id
+  count = var.vmNumber
+
+  name                 = "var.serverName-${count.index}"
+  virtual_machine_id   = element(azurerm_virtual_machine.vm.*.id, count.index)
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
   type_handler_version = "2.0"
@@ -101,8 +102,11 @@ data "azurerm_resource_group" "current" {
 
 # The Service Principal that Terraform uses needs to be able to create RBAC role assignments on the defined scope.
 # I had to elevate my Terraform Service Principal to Owner in order to be able to assign the Contributor role to the VM.
-resource "azurerm_role_assignment" "rbac_role_assignment_vm01" {
+resource "azurerm_role_assignment" "rbac_role_assignment_vm" {
+  count =  var.vmNumber
+   
   scope              = data.azurerm_resource_group.current.id
   role_definition_name = "Contributor"
-  principal_id       = lookup(azurerm_virtual_machine.vm01.identity[0], "principal_id")
+  principal_id       = azurerm_virtual_machine.vm[count.index].identity[0].principal_id
+  
 }

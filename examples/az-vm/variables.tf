@@ -22,3 +22,7 @@ variable "serverName" {
     type = string
     description = "Name of your VM"
 }
+
+variable "vmNumber" {
+    description = "Name of your VM"
+}
