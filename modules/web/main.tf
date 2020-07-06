@@ -131,6 +131,25 @@ resource "azurerm_virtual_machine_extension" "custom_script" {
 SETTINGS
 }
 
+# Use this data source to access information about an existing Resource Group.
+# We will need the Resource Group Id to scope the rbac role assignement for the VMs.
+data "azurerm_resource_group" "current" {
+  name = var.resourceGroup
+}
+
+# The Service Principal that Terraform uses needs to be able to create RBAC role assignments on the defined scope.
+# I had to elevate my Terraform Service Principal to Owner in order to be able to assign the Contributor role to the VM.
+resource "azurerm_role_assignment" "rbac_role_assignment_vm" {
+  count =  var.vmNumber
+   
+  scope              = data.azurerm_resource_group.current.id
+  role_definition_name = "Contributor"
+
+  # To figure out the referencing of principal_id of a VM in a list I had to ckeck out the VM list properties in terraform.tfstate file.
+  principal_id       = azurerm_virtual_machine.web_vm[count.index].identity[0].principal_id
+  
+}
+
 # Creates inbound NAT rules on the LB for each VM on different frontend port but there is no target parameter to point to the VM.
 resource "azurerm_lb_nat_rule" "web_lb_nat_rule" {
   count = var.vmNumber
