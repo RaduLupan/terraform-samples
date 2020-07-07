@@ -12,11 +12,11 @@ The **examples** folder contains stand alone configurations that can be deployed
 To deploy an example just fill in your values for the input parameters in the corresponding **terraform.tvars** file and from the folder run
 
 ```
-terraform init
+$ terraform init
 
-terraform plan
+$ terraform plan
 
-terraform apply
+$ terraform apply
 ```
 The **modules** folder contains child modules that can be invoked to build consistent environments. There are only two modules there for now a vnet and a web-tier with many more to come.
 
