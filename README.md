@@ -3,10 +3,10 @@
 
 The **examples** folder contains stand alone configurations that can be deployed individually. For instance:
 
-**az-vnet** creates:
+**az-vnet** deploys:
 * 1 x resource group, 1 x virtual network with one subnet, 1 x network security group associated with the subnet
 
-**az-vm** creates:
+**az-vm** deploys:
 * 1 x vm running Ubuntu with 1 public IP	
  
 To deploy an example just fill in your values for the input parameters in the corresponding **terraform.tvars** file and from the folder run
