@@ -1,3 +1,10 @@
+# This template deploys the following Azure resources:
+# - A number of vmNumber Linux Virtual Machine in an existing Resource Group and existing Virtual Network/Subnet
+# - Public IPs associated with all VM NICs
+# - No Network Security Group for VMs as they inherit the NSG applied at the subnet level
+# - Custom script VM extensions for all VMs that install Azure CLI
+# - SystemAssigned Identities for all VMs with corresponding RBAC role assignments that give Contributor role scoped to the current resource group
+
 # Terraform 0.12 syntax is used so 0.12 is the minimum required version
 terraform {
   required_version = ">= 0.12"
@@ -26,6 +33,7 @@ resource "azurerm_network_interface" "nic" {
     name                                    = "ip-config-${count.index}"
     subnet_id                               = var.subnetId
     private_ip_address_allocation           = "Dynamic"
+    public_ip_address_id                    = azurerm_public_ip.pip[count.index].id
   }
 }
 
@@ -73,7 +81,7 @@ resource "azurerm_virtual_machine" "vm" {
 resource "azurerm_virtual_machine_extension" "custom_script" {
   count = var.vmNumber
 
-  name                 = "var.serverName-${count.index}"
+  name                 = "${var.serverName}-${count.index}"
   virtual_machine_id   = element(azurerm_virtual_machine.vm.*.id, count.index)
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
@@ -87,8 +95,10 @@ resource "azurerm_virtual_machine_extension" "custom_script" {
 SETTINGS
 }
 
-resource "azurerm_public_ip" "pip01" {
-  name                = "PublicIp1"
+resource "azurerm_public_ip" "pip" {
+  count = var.vmNumber
+
+  name                = "pip-${var.serverName}-${count.index}"
   resource_group_name = var.resourceGroup
   location            = var.location
   allocation_method   = "Static"
