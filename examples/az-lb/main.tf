@@ -1,3 +1,8 @@
+# Terraform 0.12 syntax is used so 0.12 is the minimum required version
+terraform {
+  required_version = ">= 0.12"
+}
+
 provider "azurerm" {
     version = "2.0.0"
     subscription_id = var.subscriptionID

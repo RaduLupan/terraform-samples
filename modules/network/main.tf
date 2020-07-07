@@ -1,3 +1,8 @@
+# Terraform 0.12 syntax is used so 0.12 is the minimum required version
+terraform {
+  required_version = ">= 0.12"
+}
+
 # Use locals block for simple constants or calculated variables. 
 # https://www.terraform.io/docs/configuration/locals.html
 locals {
