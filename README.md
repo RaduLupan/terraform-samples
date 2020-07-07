@@ -3,24 +3,24 @@
 
 The **examples** folder contains stand alone configurations that can be deployed individually. For instance:
 
-**az-vnet** creates:
+**az-vnet** deploys:
 * 1 x resource group, 1 x virtual network with one subnet, 1 x network security group associated with the subnet
 
-**az-vm** creates:
+**az-vm** deploys:
 * 1 x vm running Ubuntu with 1 public IP	
  
 To deploy an example just fill in your values for the input parameters in the corresponding **terraform.tvars** file and from the folder run
 
 ```
-terraform init
+$ terraform init
 
-terraform plan
+$ terraform plan
 
-terraform apply
+$ terraform apply
 ```
-The **modules** folder contains child modules that can be invoked to build consistent environments. There are only two modules there for now a vnet and a web-tier with many more to come.
+The **modules** folder contains child modules that can be invoked to build consistent environments. There are only three modules there for now: network, web and global with more to come.
 
-The **environments** folder contains root modules that build environments by calling the child modules. 
+The **environments** folder contains root modules that build environments by invoking the child modules. 
 The only difference between the **dev** and **stage** environments is the values of the input parameters injected into the child modules, but the modules themselves have the same code!
 
 ## Resources
