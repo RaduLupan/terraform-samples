@@ -18,9 +18,9 @@ $ terraform plan
 
 $ terraform apply
 ```
-The **modules** folder contains child modules that can be invoked to build consistent environments. There are only two modules there for now a vnet and a web-tier with many more to come.
+The **modules** folder contains child modules that can be invoked to build consistent environments. There are only three modules there for now: network, web and global with more to come.
 
-The **environments** folder contains root modules that build environments by calling the child modules. 
+The **environments** folder contains root modules that build environments by invoking the child modules. 
 The only difference between the **dev** and **stage** environments is the values of the input parameters injected into the child modules, but the modules themselves have the same code!
 
 ## Resources
