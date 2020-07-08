@@ -1,3 +1,9 @@
+# This template deploys the following Azure resources:
+# - A number of vmNumber Linux Virtual Machine in an existing Resource Group and existing Virtual Network/Subnet
+# - No Network Security Group for VMs as they inherit the NSG applied at the subnet level
+# - Custom script VM extensions for all VMs that install Apache
+# - Connects the VM NICs to an existing Load Balancer Backend Pool via azurerm_network_interface_backend_address_pool_association
+
 # Terraform 0.12 syntax is used so 0.12 is the minimum required version
 terraform {
   required_version = ">= 0.12"
@@ -24,9 +30,9 @@ resource "azurerm_network_interface" "nic" {
   resource_group_name = var.resourceGroup
 
   ip_configuration {
-    name                                    = "IPconfiguration-${count.index}"
-    subnet_id                               = var.subnetId
-    private_ip_address_allocation           = "Dynamic"
+    name                          = "IPconfiguration-${count.index}"
+    subnet_id                     = var.subnetId
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
@@ -38,7 +44,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "nic_backe
   backend_address_pool_id = var.lbBackendPoolIDs
 }
 
-resource "azurerm_virtual_machine" "web-vm" {
+resource "azurerm_virtual_machine" "web_vm" {
   count = var.vmNumber
 
   name                  = "vm-${var.serverName}-${count.index}"
@@ -81,7 +87,7 @@ resource "azurerm_virtual_machine_extension" "custom_script" {
   count = var.vmNumber
 
   name                 = "var.serverName-${count.index}"
-  virtual_machine_id   = element(azurerm_virtual_machine.web-vm.*.id, count.index)
+  virtual_machine_id   = element(azurerm_virtual_machine.web_vm.*.id, count.index)
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
   type_handler_version = "2.0"
