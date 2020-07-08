@@ -3,6 +3,7 @@
 # - No Network Security Group for VMs as they inherit the NSG applied at the subnet level
 # - Custom script VM extensions for all VMs that install Apache
 # - Connects the VM NICs to an existing Load Balancer Backend Pool via azurerm_network_interface_backend_address_pool_association
+# - SystemAssigned Identities for all VMs with corresponding RBAC role assignments that give Contributor role scoped to the current resource group
 
 # Terraform 0.12 syntax is used so 0.12 is the minimum required version
 terraform {
@@ -30,7 +31,7 @@ resource "azurerm_network_interface" "nic" {
   resource_group_name = var.resourceGroup
 
   ip_configuration {
-    name                          = "IPconfiguration-${count.index}"
+    name                          = "ip-configuration-${count.index}"
     subnet_id                     = var.subnetId
     private_ip_address_allocation = "Dynamic"
   }
@@ -40,7 +41,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "nic_backe
   count = var.vmNumber
   
   network_interface_id    = element(azurerm_network_interface.nic.*.id, count.index)
-  ip_configuration_name   = "IPconfiguration-${count.index}"
+  ip_configuration_name   = "ip-configuration-${count.index}"
   backend_address_pool_id = var.lbBackendPoolIDs
 }
 
@@ -75,6 +76,9 @@ resource "azurerm_virtual_machine" "web_vm" {
   os_profile_linux_config {
     disable_password_authentication = false
   }
+  identity {
+    type = "SystemAssigned"
+  }
 
   tags = {
     environment = "${local.environment}"
@@ -97,4 +101,20 @@ resource "azurerm_virtual_machine_extension" "custom_script" {
         "commandToExecute": "apt-get -y update && apt-get install -y apache2"
     }
 SETTINGS
+}
+
+# Use this data source to access information about an existing Resource Group.
+# We will need the Resource Group Id to scope the rbac role assignement for the VMs.
+data "azurerm_resource_group" "current" {
+  name = var.resourceGroup
+}
+
+# The Service Principal that Terraform uses needs to be able to create RBAC role assignments on the defined scope.
+# I had to elevate my Terraform Service Principal to Owner in order to be able to assign the Contributor role to the VM.
+resource "azurerm_role_assignment" "rbac_role_assignment_vm" {
+  count =  var.vmNumber 
+
+  scope              = data.azurerm_resource_group.current.id
+  role_definition_name = "Contributor"
+  principal_id       = azurerm_virtual_machine.web_vm[count.index].identity[0].principal_id
 }
