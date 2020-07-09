@@ -17,3 +17,12 @@ variable "subnetIds" {
     type = list(string)
     description = "Subnet Ids for subnets that will connect to Azure Key Vault via service endpoints"
 }
+
+variable "serverName" {
+    type = string
+    description = "Name of your VM"
+}
+
+variable "vmNumber" {
+    description = "Number of VMs behind the load balancer"
+}

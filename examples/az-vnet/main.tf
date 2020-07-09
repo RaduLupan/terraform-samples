@@ -2,7 +2,7 @@
 #  - 1 x Resource Group
 #  - 1 x Virtual Network with 1 x Subnet called frontend
 #  - 1 x Network Security Group associated with the frontend subnet that allows incoming SSH from restricted location and TCP 80 from anywhere
-#  - 1 x Service Point for Microsoft.KeyVault on the frontend subnet
+#  - 1 x Service Endpoint for Microsoft.KeyVault on the frontend subnet
 
 # Terraform 0.12 syntax is used so 0.12 is the minimum required version
 terraform {
