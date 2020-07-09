@@ -1,3 +1,11 @@
+# This module deploys the following Azure resources:
+# - 1 x Load Balancer with 1 x Public IP, 1 x Backend Pool, 1 x Probe and 1 x Rule
+# - A number of vmNumber Linux Virtual Machines in an existing Resource Group and existing Virtual Network/Subnet
+# - No Network Security Group for VMs as they inherit the NSG applied at the subnet level
+# - Custom script VM extensions for all VMs that install Apache
+# - Connects the VM NICs to the Load Balancer Backend Pool via azurerm_network_interface_backend_address_pool_association
+# - SystemAssigned Identities for all VMs with corresponding RBAC role assignments that give Contributor role scoped to the current resource group
+
 # Terraform 0.12 syntax is used so 0.12 is the minimum required version
 terraform {
   required_version = ">= 0.12"
