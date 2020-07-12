@@ -71,6 +71,10 @@ resource "azurerm_virtual_machine" "vm" {
   identity {
     type = "SystemAssigned"
   }
+  boot_diagnostics {
+    enabled     = true
+    storage_uri = join(",", azurerm_storage_account.storage_account.*.primary_blob_endpoint)
+  }
 
   tags = {
     environment = "${local.environment}"
@@ -120,8 +124,34 @@ data "azurerm_resource_group" "current" {
 resource "azurerm_role_assignment" "rbac_role_assignment_vm" {
   count =  var.vmNumber
    
-  scope              = data.azurerm_resource_group.current.id
+  scope                = data.azurerm_resource_group.current.id
   role_definition_name = "Contributor"
-  principal_id       = azurerm_virtual_machine.vm[count.index].identity[0].principal_id
+  principal_id         = azurerm_virtual_machine.vm[count.index].identity[0].principal_id
   
+}
+
+# Random string for the storage account name. Must be 3-24 characters, lowercase letters and numbers.
+resource "random_string" "random" {
+  length = 8
+  special = false
+}
+
+# Create one storage account for VMs boot diags and everything else.
+resource "azurerm_storage_account" "storage_account" {
+  name                     = "st${local.environment}${lower(random_string.random.result)}"
+  resource_group_name      = var.resourceGroup
+  location                 = var.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  # Restrict access to storage account endpoint to the vnet subnet via service endpoint.
+  network_rules {
+    default_action             = "Deny"
+    virtual_network_subnet_ids = [var.subnetId]
+  }
+
+  tags = {
+    environment = "${local.environment}"
+    project = "${local.project}"
+  }
 }
