@@ -12,8 +12,7 @@ terraform {
 }
 
 locals {
-    project = "terraform-samples-modules"
-    environment = "dev"
+    project = "terraform-samples-modules"  
     role= "web"
 }
 
@@ -26,7 +25,7 @@ resource "azurerm_public_ip" "pip1" {
 }
 
 resource "azurerm_lb" "web_loadbalancer" {
-  name                = "web-loadbalancer"
+  name                = "lb-web-${var.environment}-01"
   location            = var.location
   resource_group_name = var.resourceGroup
   sku                 = "Standard"
@@ -67,12 +66,11 @@ resource "azurerm_lb_rule" "web_lb_http_rule" {
 resource "azurerm_network_interface" "nic" {
   count = var.vmNumber
 
-  name                = "nic-${var.serverName}-${count.index}"
-  location            = var.location
-  resource_group_name = var.resourceGroup
-
+  name                                      = "nic-${var.serverName}-0${count.index}"
+  location                                  = var.location
+  resource_group_name                       = var.resourceGroup
   ip_configuration {
-    name                                    = "ip-config-${count.index}"
+    name                                    = "ip-config-0${count.index}"
     subnet_id                               = var.subnetId
     private_ip_address_allocation           = "Dynamic"
   }
@@ -82,14 +80,14 @@ resource "azurerm_network_interface_backend_address_pool_association" "nic_backe
   count = var.vmNumber
   
   network_interface_id    = element(azurerm_network_interface.nic.*.id, count.index)
-  ip_configuration_name   = "ip-config-${count.index}"
+  ip_configuration_name   = "ip-config-0${count.index}"
   backend_address_pool_id = azurerm_lb_backend_address_pool.web_lb_pool.id
 }
 
 resource "azurerm_virtual_machine" "web_vm" {
   count = var.vmNumber
 
-  name                  = "vm-${var.serverName}-${count.index}"
+  name                  = "vm-${var.serverName}-0${count.index}"
   location              = var.location
   resource_group_name   = var.resourceGroup
   network_interface_ids = [element(azurerm_network_interface.nic.*.id, count.index)]
@@ -104,13 +102,13 @@ resource "azurerm_virtual_machine" "web_vm" {
     version   = "latest"
   }
   storage_os_disk {
-    name              = "os-disk-${var.serverName}-${count.index}"
+    name              = "os-disk-${var.serverName}-0${count.index}"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
   os_profile {
-    computer_name  = "var.serverName-${count.index}"
+    computer_name  = "var.serverName-0${count.index}"
     admin_username = "azureadmin"
     admin_password = "Password1234!"
   }
@@ -120,9 +118,13 @@ resource "azurerm_virtual_machine" "web_vm" {
   identity {
     type = "SystemAssigned"
   }
+  boot_diagnostics {
+    enabled     = true
+    storage_uri = join(",", azurerm_storage_account.storage_account.*.primary_blob_endpoint)
+  }
 
   tags = {
-    environment = "${local.environment}"
+    environment = var.environment
     project = "${local.project}"
     role= "${local.role}"
   }
@@ -131,7 +133,7 @@ resource "azurerm_virtual_machine" "web_vm" {
 resource "azurerm_virtual_machine_extension" "custom_script" {
   count = var.vmNumber
 
-  name                 = "var.serverName-${count.index}"
+  name                 = "var.serverName-0${count.index}"
   virtual_machine_id   = element(azurerm_virtual_machine.web_vm.*.id, count.index)
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
@@ -169,7 +171,7 @@ resource "azurerm_lb_nat_rule" "web_lb_nat_rule" {
 
   resource_group_name            = var.resourceGroup
   loadbalancer_id                = azurerm_lb.web_loadbalancer.id
-  name                           = "ssh-${var.serverName}-${count.index}"
+  name                           = "ssh-${var.serverName}-0${count.index}"
   protocol                       = "Tcp"
   frontend_port                  = "5000${count.index}"
   backend_port                   = 22
@@ -181,6 +183,32 @@ resource "azurerm_network_interface_nat_rule_association" "nic_nat_rule_associat
   count = var.vmNumber
 
   network_interface_id  = element(azurerm_network_interface.nic.*.id, count.index)
-  ip_configuration_name = "ip-config-${count.index}"
+  ip_configuration_name = "ip-config-0${count.index}"
   nat_rule_id           = element(azurerm_lb_nat_rule.web_lb_nat_rule.*.id, count.index)
+}
+
+# Random string for the storage account name. Must be 3-24 characters, lowercase letters and numbers.
+resource "random_string" "random" {
+  length = 8
+  special = false
+}
+
+# Create one storage account for VMs boot diags and everything else.
+resource "azurerm_storage_account" "storage_account" {
+  name                     = "st${var.environment}${lower(random_string.random.result)}"
+  resource_group_name      = var.resourceGroup
+  location                 = var.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  # Restrict access to storage account endpoint to the vnet subnet via service endpoint.
+  network_rules {
+    default_action             = "Deny"
+    virtual_network_subnet_ids = [var.subnetId]
+  }
+
+  tags = {
+    environment = var.environment
+    project = "${local.project}"
+  }
 }

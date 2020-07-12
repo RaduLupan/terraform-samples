@@ -13,6 +13,11 @@ variable "resourceGroup" {
     description = "Name of your resource group"
 }
 
+variable "environment" {
+    type = string
+    description   = "Environment i.e. dev, test, stage, prod" 
+}
+
 variable "subnetId" {
     type = string
     description = "Subnet Id for subnet that VM will sit on"
