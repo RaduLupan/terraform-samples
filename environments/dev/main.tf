@@ -16,6 +16,7 @@ module "network" {
     
     subscriptionID              = var.subscriptionID
     location                    = "eastus2"
+    environment                 = "dev"
     vNetAddressSpace            = "10.0.0.0/16"
     frontEndSubnetAddressPrefix = "10.0.0.0/24"
     allowedSshAddressPrefix     = "135.23.87.216/32"
@@ -27,8 +28,9 @@ module "web" {
     subscriptionID              = var.subscriptionID
     location                    = "eastus2"
     resourceGroup               = module.network.rg-name 
+    environment                 = "dev"
     subnetId                    = module.network.fe-subnet-id
-    serverName                  = "lin-vm"
+    serverName                  = "ubuntu"
     vmNumber                    = 2
 }
 
@@ -38,7 +40,8 @@ module "global" {
     subscriptionID              = var.subscriptionID
     location                    = "eastus2"
     resourceGroup               = module.network.rg-name 
+    environment                 = "dev"
     subnetIds                   = [module.network.fe-subnet-id]
-    serverName                  = "lin-vm"
+    serverName                  = "ubuntu"
     vmNumber                    = 2
 }
