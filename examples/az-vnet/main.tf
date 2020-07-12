@@ -62,7 +62,7 @@ resource "azurerm_network_security_rule" "allow-ssh-rule" {
 }
 
 resource "azurerm_virtual_network" "vnet1" {
-  name                = "virtualNetwork1"
+  name                = "vnet-${local.project}-${local.environment}-01"
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
   address_space       = [var.vNetAddressSpace]
@@ -78,7 +78,7 @@ resource "azurerm_subnet" "subnet1" {
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet1.name
   address_prefix       = var.frontEndSubnetAddressPrefix
-  service_endpoints    =["Microsoft.KeyVault"] 
+  service_endpoints    =["Microsoft.KeyVault","Microsoft.Storage"] 
 }
 
 resource "azurerm_subnet_network_security_group_association" "frontend-nsg-association" {
