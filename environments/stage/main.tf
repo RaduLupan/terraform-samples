@@ -15,7 +15,8 @@ module "network" {
     source = "../../modules/network"
     
     subscriptionID              = var.subscriptionID
-    location                    = "Canada Central"
+    location                    = "canadacentral"
+    environment                 = "stage"
     vNetAddressSpace            = "172.16.0.0/16"
     frontEndSubnetAddressPrefix = "172.16.1.0/24"
     allowedSshAddressPrefix     = "135.23.87.216/32"
@@ -25,8 +26,9 @@ module "web" {
     source = "../../modules/web"
     
     subscriptionID              = var.subscriptionID
-    location                    = "Canada Central"
+    location                    = "canadacentral"
     resourceGroup               = module.network.rg-name 
+    environment                 = "stage"
     subnetId                    = module.network.fe-subnet-id
     serverName                  = "ubuntu"
     vmNumber                    = 2
@@ -36,8 +38,9 @@ module "global" {
     source = "../../modules/global"
     
     subscriptionID              = var.subscriptionID
-    location                    = "Canada Central"
-    resourceGroup               = module.network.rg-name 
+    location                    = "canadacentral"
+    resourceGroup               = module.network.rg-name
+    environment                 = "stage" 
     subnetIds                   = [module.network.fe-subnet-id]
     serverName                  = "ubuntu"
     vmNumber                    = 2
