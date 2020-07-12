@@ -10,14 +10,13 @@ terraform {
 
 locals {
     project = "terraform-samples-modules"
-    environment = "dev"
     role= "global"
 }
 ## Use this data source to access the configuration of the AzureRM provider.
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "az_key_vault" {
-  name                        = "kv-1-${local.environment}"
+  name                        = "kv-${var.environment}-${var.location}-01"
   location                    = var.location
   resource_group_name         = var.resourceGroup
   enabled_for_disk_encryption = true
@@ -43,7 +42,7 @@ resource "azurerm_key_vault" "az_key_vault" {
   }
 
   tags = {
-    environment = "${local.environment}"
+    environment = var.environment
     project     = "${local.project}"
     role        = "${local.role}"
   }
@@ -53,7 +52,7 @@ resource "azurerm_key_vault" "az_key_vault" {
 data "azurerm_virtual_machine" "web" {
   count = var.vmNumber
   
-  name                = "vm-${var.serverName}-${count.index}"
+  name                = "vm-${var.serverName}-0${count.index}"
   resource_group_name = var.resourceGroup
 }
 

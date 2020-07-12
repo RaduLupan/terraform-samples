@@ -13,6 +13,11 @@ variable "resourceGroup" {
     description = "Name of your resource group"
 }
 
+variable "environment" {
+    type = string
+    description   = "Environment i.e. dev, test, stage, prod" 
+}
+
 variable "subnetIds" {
     type = list(string)
     description = "List of subnet Ids that are allowed through the Key Vault firewall"
