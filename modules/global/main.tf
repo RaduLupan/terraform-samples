@@ -16,7 +16,7 @@ locals {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "az_key_vault" {
-  name                        = "kv-${var.environment}-${var.location}-01"
+  name                        = "kv-${var.environment}-01"
   location                    = var.location
   resource_group_name         = var.resourceGroup
   enabled_for_disk_encryption = true
