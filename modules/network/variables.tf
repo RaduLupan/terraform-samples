@@ -8,6 +8,11 @@ variable "location" {
     description = "Location of your resource group"
 }
 
+variable "environment" {
+    type = string
+    description   = "Environment i.e. dev, test, stage, prod" 
+}
+
 variable "vNetAddressSpace" {
     type = string
     description = "Address space for your vNet in CIDR notation"
