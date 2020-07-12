@@ -5,6 +5,7 @@
 # - Custom script VM extensions for all VMs that install Apache
 # - Connects the VM NICs to the Load Balancer Backend Pool via azurerm_network_interface_backend_address_pool_association
 # - SystemAssigned Identities for all VMs with corresponding RBAC role assignments that give Contributor role scoped to the current resource group
+# - 1 x Storage Account used for boot diags for VMs and everything else
 
 # Terraform 0.12 syntax is used so 0.12 is the minimum required version
 terraform {
