@@ -24,5 +24,5 @@ variable "serverName" {
 }
 
 variable "vmNumber" {
-    description = "Name of your VM"
+    description = "Number of deployed VMs"
 }
