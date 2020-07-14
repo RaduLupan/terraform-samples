@@ -22,3 +22,9 @@ variable "cdnSku" {
     type = string
     description = "Pricing tier i.e.  Standard_Akamai, Standard_Microsoft, Standard_Verizon or Premium_Verizon"
 }
+
+variable "cdnEndpointDomain" {
+    type = string
+    description   = "Name of DNS domain that points to the CDN endpoint i.e. example.com" 
+}
+
