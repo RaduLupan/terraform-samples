@@ -1,9 +1,6 @@
 # This template deploys the following Azure resources:
 # - 1 x Storage Account with 1 x blob container
 # - 1 x CDN profile with 1 x endpoint pointing to the blob storage for origin
-# Access to cached content stored in blob storage has been confirmed to be working for Standard_Microsoft CDN SKU.
-# For Standard_Akamai CDN profile http://<endpoint-name>.azureedge.net/<myPublicContainer>/<BlobName> does NOT work.
-# The Verizon SKUs: Standard_Verizon and Premium_Verizon have not been tested. 
 
 # Terraform 0.12 syntax is used so 0.12 is the minimum required version
 terraform {
