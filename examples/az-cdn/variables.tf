@@ -13,3 +13,12 @@ variable "resourceGroup" {
     description = "Name of your resource group"
 }
 
+variable "environment" {
+    type = string
+    description   = "Environment i.e. dev, test, stage, prod" 
+}
+
+variable "cdnSku" {
+    type = string
+    description = "Pricing tier i.e.  Standard_Akamai, Standard_Microsoft, Standard_Verizon or Premium_Verizon"
+}
