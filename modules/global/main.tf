@@ -2,6 +2,9 @@
 # - 1 x Key Vault in existing resource group
 # - The Key Vault firewall allows traffic from existing vnet subnet via service endpoint
 # - Key Vault Access Policies for multiple existing VMs allowing them to access keys/secrets/certificates
+# - 1 x Storage Account with 1 x blob container
+# - 1 x CDN profile with 1 x endpoint pointing to the blob storage for origin
+
 
 # Terraform 0.12 syntax is used so 0.12 is the minimum required version
 terraform {
@@ -12,11 +15,18 @@ locals {
     project = "terraform-samples-modules"
     role= "global"
 }
+
+# The random string needed for injecting randomness in the name for storage account, blob container and key vault.
+resource "random_string" "random" {
+  length = 4
+  special = false
+}
+
 ## Use this data source to access the configuration of the AzureRM provider.
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "az_key_vault" {
-  name                        = "kv-${var.environment}-01"
+  name                        = "kv-${var.environment}-${lower(random_string.random.result)}"
   location                    = var.location
   resource_group_name         = var.resourceGroup
   enabled_for_disk_encryption = true
@@ -89,12 +99,6 @@ resource "azurerm_key_vault_access_policy" "web_key_vault_access_policy" {
     "create",
     "update",
   ]
-}
-
-# The random string needed for injecting randomness in the storage account and blob container names.
-resource "random_string" "random" {
-  length = 4
-  special = false
 }
 
 resource "azurerm_storage_account" "storage_account" {
