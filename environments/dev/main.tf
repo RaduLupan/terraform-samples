@@ -44,4 +44,6 @@ module "global" {
     subnetIds                   = [module.network.fe-subnet-id]
     serverName                  = "ubuntu"
     vmNumber                    = 2
+    cdnSku                      = "Standard_Verizon"
+    cdnEndpointDomain           = "dev.lupan.ca"
 }
