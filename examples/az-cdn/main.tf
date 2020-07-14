@@ -64,7 +64,7 @@ resource "azurerm_cdn_profile" "cdn_profile" {
 }
 
 resource "azurerm_cdn_endpoint" "cdn_endpoint" {
-  # Creates the CDN endpoint name out of the domain name to ensure uniqness, i.e. cdn-example-com
+  # Creates the CDN endpoint name out of the domain name to ensure uniqueness, i.e. cdn-example-com
   name                = join("-",["cdn",replace(var.cdnEndpointDomain,".","-")])
   profile_name        = azurerm_cdn_profile.cdn_profile.name
   location            = var.location
