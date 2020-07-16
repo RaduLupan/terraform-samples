@@ -2,7 +2,7 @@
 #  - 1 x Resource Group
 #  - 1 x Virtual Network with 1 x Subnet called frontend
 #  - 1 x Network Security Group associated with the frontend subnet that allows incoming SSH from restricted location and TCP 80 from anywhere
-#  - Service Endpoints for Microsoft.KeyVault, Microsoft.Storage on the frontend subnet
+#  - Service Endpoints for Microsoft.KeyVault, Microsoft.Storage and Microsoft.Sql on the frontend subnet
 
 # Terraform 0.12 syntax is used so 0.12 is the minimum required version
 terraform {
@@ -87,7 +87,7 @@ resource "azurerm_subnet" "subnet1" {
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet1.name
   address_prefixes     = [var.frontEndSubnetAddressPrefix]
-  service_endpoints    =["Microsoft.KeyVault", "Microsoft.Storage"] 
+  service_endpoints    =["Microsoft.KeyVault", "Microsoft.Storage", "Microsoft.Sql"] 
 }
 
 resource "azurerm_subnet_network_security_group_association" "frontend_nsg_association" {
