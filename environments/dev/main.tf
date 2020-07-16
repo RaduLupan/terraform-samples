@@ -47,3 +47,18 @@ module "global" {
     cdnSku                      = "Standard_Verizon"
     cdnEndpointDomain           = "dev.lupan.ca"
 }
+
+module "data" {
+    source = "../../modules/data"
+    
+    subscriptionID              = var.subscriptionID
+    location                    = "eastus2"
+    resourceGroup               = module.network.rg-name 
+    environment                 = "dev"
+    adminLogin                  = "mysqladmin"
+    adminLoginPassword          = "DontLeaveMeInPlainText!"
+    serverSku                   = "GP_Gen5_2"
+    serverStorageMb             = 5120
+    serverVersion               = "5.7"
+    subnetId                    = module.network.fe-subnet-id
+}

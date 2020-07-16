@@ -47,3 +47,18 @@ module "global" {
     cdnSku                      = "Standard_Akamai"
     cdnEndpointDomain           = "stage.lupan.ca"
 }
+
+module "data" {
+    source = "../../modules/data"
+    
+    subscriptionID              = var.subscriptionID
+    location                    = "canadacentral"
+    resourceGroup               = module.network.rg-name 
+    environment                 = "stage"
+    adminLogin                  = "mysqladmin"
+    adminLoginPassword          = "DontLeaveMeInPlainText!"
+    serverSku                   = "GP_Gen5_2"
+    serverStorageMb             = 5120
+    serverVersion               = "5.7"
+    subnetId                    = module.network.fe-subnet-id
+}
