@@ -23,6 +23,9 @@ The **modules** folder contains child modules that can be invoked to build consi
 The **environments** folder contains root modules that build different environments by invoking the same child modules. 
 The only differences between the **dev** and **stage** environments are the values of the input parameters injected into the child modules. The child modules themselves use the same code!
 
+The environment architecture diagram is below:
+
+![Env-Diagram](terraform-samples-environments.png)
 ## Resources
 [CloudSkills Github Repository](https://github.com/cloudskills)
 
