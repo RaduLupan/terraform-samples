@@ -18,10 +18,10 @@ $ terraform plan
 
 $ terraform apply
 ```
-The **modules** folder contains child modules that can be invoked to build consistent environments. There are only three modules there for now: **network**, **web** and **global** with more to come.
+The **modules** folder contains child modules that can be invoked to build consistent environments. There are four modules there for now: **network**, **web** , **data**, and **global**.
 
 The **environments** folder contains root modules that build different environments by invoking the same child modules. 
-The only difference between the **dev** and **stage** environments is the values of the input parameters injected into the child modules. The child modules themselves use the same code!
+The only differences between the **dev** and **stage** environments are the values of the input parameters injected into the child modules. The child modules themselves use the same code!
 
 ## Resources
 [CloudSkills Github Repository](https://github.com/cloudskills)
