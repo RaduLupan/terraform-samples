@@ -1,5 +1,5 @@
-# terraform-samples
-### Sample configurations for Azure and AWS developed in my quest to learn Terraform
+# terraform-samples-azure
+### Sample configurations developed in my quest to learn Terraform and Azure
 
 The **examples** folder contains stand alone configurations that can be deployed individually. For instance:
 
