@@ -1,26 +1,26 @@
 variable "subscriptionID" {
-    type = string
     description = "Target subscription ID"
+    type        = string
 }
 
 variable "location" {
-    type = string
     description = "Location of your resource group"
+    type        = string
 }
 
 variable "resourceGroup" {
-    type = string
     description = "Name of your resource group"
+    type        = string
 }
 
 variable "subnetId" {
-    type = string
     description = "Subnet Id for subnet that VM will sit on"
+    type        = string
 }
 
 variable "serverName" {
-    type = string
     description = "Name of your VM"
+    type        = string
 }
 
 variable "vmNumber" {
@@ -28,6 +28,16 @@ variable "vmNumber" {
 }
 
 variable "lbBackendPoolIDs" {
-    type = string
     description = "Backend pool ID of the load balancer"
+    type        = string
+}
+
+variable "vmAdminUser" {
+    description = "Admin user name"
+    type        = string
+}
+
+variable "vmAdminPassword" {
+    description = "Admin password"
+    type        = string
 }
