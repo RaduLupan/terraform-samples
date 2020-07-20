@@ -1,31 +1,31 @@
 variable "subscriptionID" {
-    type = string
     description = "Target subscription ID"
+    type        = string
 }
 
 variable "location" {
-    type = string
     description = "Location of your resource group"
+    type        = string
 }
 
 variable "resourceGroup" {
-    type = string
     description = "Name of your resource group"
+    type        = string
 }
 
 variable "environment" {
-    type = string
     description   = "Environment i.e. dev, test, stage, prod" 
+    type          = string
 }
 
 variable "subnetIds" {
-    type = list(string)
     description = "List of subnet Ids that are allowed through the Key Vault firewall"
+    type        = list(string)
 }
 
 variable "serverName" {
-    type = string
     description = "Name of your VM"
+    type        = string
 }
 
 variable "vmNumber" {
@@ -33,11 +33,11 @@ variable "vmNumber" {
 }
 
 variable "cdnSku" {
-    type = string
     description = "Pricing tier i.e.  Standard_Akamai, Standard_Microsoft, Standard_Verizon or Premium_Verizon"
+    type        = string
 }
 
 variable "cdnEndpointDomain" {
-    type = string
     description   = "Name of DNS domain that points to the CDN endpoint i.e. example.com" 
+    type          = string
 }

@@ -110,8 +110,8 @@ resource "azurerm_virtual_machine" "web_vm" {
   }
   os_profile {
     computer_name  = "var.serverName-0${count.index}"
-    admin_username = "azureadmin"
-    admin_password = "Password1234!"
+    admin_username = var.vmAdminUser
+    admin_password = var.vmAdminPassword
   }
   os_profile_linux_config {
     disable_password_authentication = false

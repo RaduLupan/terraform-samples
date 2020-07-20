@@ -32,6 +32,9 @@ module "web" {
     subnetId                    = module.network.fe-subnet-id
     serverName                  = "ubuntu"
     vmNumber                    = 2
+    vmAdminUser                 = "azureadmin"
+    # Password in clear text alert! Better to create an environment variable TF_VAR_vmAdminPassword or type it in at terraform plan phase.
+    vmAdminPassword             = "DontLeaveMeInPlainText!"
 }
 
 module "global" {
@@ -56,6 +59,7 @@ module "data" {
     resourceGroup               = module.network.rg-name 
     environment                 = "dev"
     adminLogin                  = "mysqladmin"
+    # Password in clear text alert! Better to create an environment variable TF_VAR_adminLoginPassword or type it in at terraform plan phase.
     adminLoginPassword          = "DontLeaveMeInPlainText!"
     serverSku                   = "GP_Gen5_2"
     serverStorageMb             = 5120

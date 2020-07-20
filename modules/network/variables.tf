@@ -1,29 +1,31 @@
 variable "subscriptionID" {
-    type = string
     description = "Target subscription ID"
+    type        = string
 }
 
 variable "location" {
-    type = string
     description = "Location of your resource group"
+    type        = string
 }
 
 variable "environment" {
-    type = string
     description   = "Environment i.e. dev, test, stage, prod" 
+    type          = string
 }
 
 variable "vNetAddressSpace" {
-    type = string
     description = "Address space for your vNet in CIDR notation"
+    type        = string
 }
 
 variable "frontEndSubnetAddressPrefix" {
-    type = string
     description = "Address prefix for your front end subnet in CIDR notation"
+    type        = string
+    
 }
 
 variable "allowedSshAddressPrefix" {
-    type = string
     description = "Address prefix for your range of IPs allowed for SSH in CIDR notation"
+    type        = string
+    
 }

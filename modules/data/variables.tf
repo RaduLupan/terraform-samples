@@ -1,36 +1,37 @@
 variable "subscriptionID" {
-    type = string
     description = "Target subscription ID"
+    type        = string
 }
 
 variable "location" {
-    type = string
     description = "Location of your resource group"
+    type        = string
 }
 
 variable "resourceGroup" {
-    type = string
     description = "Name of your resource group"
+    type        = string
 }
 
 variable "environment" {
-    type = string
     description   = "Environment i.e. dev, test, stage, prod" 
+    type          = string
 }
 
 variable "adminLogin" {
-    type = string
     description = "MySQL Server administrator login"
+    type        = string
+    
 }
 
 variable "adminLoginPassword" {
-    type = string
     description = "MySQL Server administrator login password"
+    type        = string
 }
 
 variable "serverSku" {
-    type = string
     description = "MySQL Server SKU name"
+    type        = string   
 }
 
 variable "serverStorageMb" {
@@ -38,11 +39,11 @@ variable "serverStorageMb" {
 }
 
 variable "serverVersion" {
-    type = string
     description = "MySQL Server version i.e 5.7"
+    type        = string
 }
 
 variable "subnetId" {
-    type = string
     description = "Id of the virtual network subnet allowed to connect to the MySQL server"
+    type        = string
 }
