@@ -3,7 +3,7 @@
 
 The **examples** folder contains stand alone configurations that can be deployed individually. For instance:
 
-**az-vnet** deploys de following Azure resources:
+**az-vnet** deploys the following Azure resources:
 * 1 x resource group, 1 x virtual network with one subnet, 1 x network security group associated with the subnet
 
 **az-vm** deploys the following Azure resources:
