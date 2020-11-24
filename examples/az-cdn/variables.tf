@@ -1,30 +1,34 @@
-variable "subscriptionID" {
-    type = string
-    description = "Target subscription ID"
+variable "subscription_id" {
+  description = "Target subscription ID"
+  type        = string
 }
 
 variable "location" {
-    type = string
-    description = "Location of your resource group"
+  description = "The Azure region where the resources are being deployed"
+  type        = string
 }
 
-variable "resourceGroup" {
-    type = string
-    description = "Name of your resource group"
+variable "resource_group" {
+  description = "Name of your resource group"
+  type        = string
+  default     = null
 }
 
 variable "environment" {
-    type = string
-    description   = "Environment i.e. dev, test, stage, prod" 
+  description = "Environment i.e. dev, test, stage, prod"
+  type        = string
+  default     = "dev"
 }
 
-variable "cdnSku" {
-    type = string
-    description = "Pricing tier i.e.  Standard_Akamai, Standard_Microsoft, Standard_Verizon or Premium_Verizon"
+variable "cdn_sku" {
+  description = "Pricing tier i.e.  Standard_Akamai, Standard_Microsoft, Standard_Verizon or Premium_Verizon"
+  type        = string
+  default     = "Standard_Microsoft"
 }
 
-variable "cdnEndpointDomain" {
-    type = string
-    description   = "Name of DNS domain that points to the CDN endpoint i.e. example.com" 
+variable "cdn_endpoint_domain" {
+  description = "Name of DNS domain that points to the CDN endpoint i.e. example.com"
+  type        = string
+  default     = "example.com"
 }
 
