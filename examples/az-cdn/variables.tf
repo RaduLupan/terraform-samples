@@ -1,3 +1,7 @@
+#----------------------------------------------------------------------------
+# REQUIRED PARAMETERS: You must provide a value for each of these parameters.
+#----------------------------------------------------------------------------
+
 variable "subscription_id" {
   description = "Target subscription ID"
   type        = string
@@ -8,8 +12,12 @@ variable "location" {
   type        = string
 }
 
+#---------------------------------------------------------------
+# OPTIONAL PARAMETERS: These parameters have resonable defaults.
+#---------------------------------------------------------------
+
 variable "resource_group" {
-  description = "Name of your resource group"
+  description = "Name of your resource group (if not specified new resource group will be created in the Azure region)"
   type        = string
   default     = null
 }
