@@ -4,34 +4,38 @@
 #  - 1 x Network Security Group associated with the frontend subnet that allows incoming SSH from restricted location and TCP 80 from anywhere
 #  - 1 x Service Endpoint for Microsoft.KeyVault on the frontend subnet
 
-# Terraform 0.12 syntax is used so 0.12 is the minimum required version
 terraform {
-  required_version = ">= 0.12"
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "2.37.0"
+    }
+  }
+
+  required_version = "~> 0.13.0"
 }
 
 provider "azurerm" {
-    version = "2.0.0"
-    subscription_id = var.subscriptionID
-    features {}
+  subscription_id = var.subscription_id
+  features {}
 }
 
-# Use locals block for simple constants or calculated variables https://www.terraform.io/docs/configuration/locals.html
 locals {
-    project = "terraform-samples"
-    environment = "dev"
+  project = "terraform-samples"
 }
+
 resource "azurerm_resource_group" "rg" {
   name     = "rg-${local.project}"
   location = var.location
 }
 
-resource "azurerm_network_security_group" "frontend-nsg" {
+resource "azurerm_network_security_group" "frontend" {
   name                = "nsg-frontend"
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
 }
 
-resource "azurerm_network_security_rule" "allow-tcp-80-rule" {
+resource "azurerm_network_security_rule" "allow_tcp_80" {
   name                        = "allow-tcp-80"
   priority                    = 100
   direction                   = "Inbound"
@@ -41,12 +45,15 @@ resource "azurerm_network_security_rule" "allow-tcp-80-rule" {
   destination_port_range      = "*"
   source_address_prefix       = "*"
   destination_address_prefix  = "*"
-  description                 = "Allows HTTP from anywhere"  
+  description                 = "Allows HTTP from anywhere"
   resource_group_name         = azurerm_resource_group.rg.name
-  network_security_group_name = azurerm_network_security_group.frontend-nsg.name
+  network_security_group_name = azurerm_network_security_group.frontend.name
 }
 
-resource "azurerm_network_security_rule" "allow-ssh-rule" {
+# If var.allowed_ssh_address_prefix is not null then create allow_ssh rule
+resource "azurerm_network_security_rule" "allow_ssh" {
+  count = var.allowed_ssh_address_prefix == null ? 0 : 1
+
   name                        = "allow-tcp-22"
   priority                    = 110
   direction                   = "Inbound"
@@ -54,34 +61,35 @@ resource "azurerm_network_security_rule" "allow-ssh-rule" {
   protocol                    = "Tcp"
   source_port_range           = "*"
   destination_port_range      = "*"
-  source_address_prefix       = var.allowedSshAddressPrefix
+  source_address_prefix       = var.allowed_ssh_address_prefix
   destination_address_prefix  = "*"
-  description                 = "Allows SSH from restricted CIDR range"  
+  description                 = "Allows SSH from restricted CIDR range"
   resource_group_name         = azurerm_resource_group.rg.name
-  network_security_group_name = azurerm_network_security_group.frontend-nsg.name
+  network_security_group_name = azurerm_network_security_group.frontend.name
 }
 
-resource "azurerm_virtual_network" "vnet1" {
-  name                = "vnet-${local.project}-${local.environment}-01"
+resource "azurerm_virtual_network" "main" {
+  name                = "vnet-${local.project}-${var.environment}-01"
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
-  address_space       = [var.vNetAddressSpace]
+  address_space       = [var.vnet_address_space]
 
   tags = {
-    environment = "${local.environment}"
-    project = "${local.project}"
+    environment = var.environment
+    project     = local.project
+    terraform   = "true"
   }
 }
 
-resource "azurerm_subnet" "subnet1" {
+resource "azurerm_subnet" "frontend" {
   name                 = "frontend"
   resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet1.name
-  address_prefix       = var.frontEndSubnetAddressPrefix
-  service_endpoints    =["Microsoft.KeyVault","Microsoft.Storage"] 
+  virtual_network_name = azurerm_virtual_network.main.name
+  address_prefixes     = [var.frontend_subnet_address_prefix]
+  service_endpoints    = ["Microsoft.KeyVault", "Microsoft.Storage"]
 }
 
-resource "azurerm_subnet_network_security_group_association" "frontend-nsg-association" {
-  subnet_id                 = azurerm_subnet.subnet1.id
-  network_security_group_id = azurerm_network_security_group.frontend-nsg.id
+resource "azurerm_subnet_network_security_group_association" "frontend_nsg_association" {
+  subnet_id                 = azurerm_subnet.frontend.id
+  network_security_group_id = azurerm_network_security_group.frontend.id
 }
