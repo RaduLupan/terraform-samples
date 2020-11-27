@@ -1,28 +1,47 @@
-variable "subscriptionID" {
-    type = string
-    description = "Target subscription ID"
+#----------------------------------------------------------------------------
+# REQUIRED PARAMETERS: You must provide a value for each of these parameters.
+#----------------------------------------------------------------------------
+
+variable "subscription_id" {
+  description = "Target subscription ID"
+  type        = string
 }
 
 variable "location" {
-    type = string
-    description = "Location of your resource group"
+  description = "The Azure region where the resources are being deployed"
+  type        = string
 }
 
-variable "resourceGroup" {
-    type = string
-    description = "Name of your resource group"
+#---------------------------------------------------------------
+# OPTIONAL PARAMETERS: These parameters have resonable defaults.
+#---------------------------------------------------------------
+
+variable "resource_group" {
+  description = "Name of your resource group (if null new resource group will be created in the Azure region)"
+  type        = string
+  default     = null
 }
 
-variable "subnetIds" {
-    type = list(string)
-    description = "Subnet Ids for subnets that will connect to Azure Key Vault via service endpoints"
+variable "environment" {
+  description = "Environment i.e. dev, test, stage, prod"
+  type        = string
+  default     = "dev"
 }
 
-variable "serverName" {
-    type = string
-    description = "Name of your VM"
+variable "subnet_ids" {
+  description = "Subnet Ids for subnets that will connect to Azure Key Vault via service endpoints (if null new vnet will be created in the Azure region)"
+  type        = list(string)
+  default     = null
 }
 
-variable "vmNumber" {
-    description = "Number of VMs behind the load balancer"
+variable "server_name" {
+  description = "Name of your VM"
+  type        = string
+  default     = null
+}
+
+variable "vm_number" {
+  description = "Number of VMs behind the load balancer"
+  type        = number
+  default     = 0
 }
