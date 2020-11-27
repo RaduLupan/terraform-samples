@@ -29,7 +29,7 @@ locals {
 resource "azurerm_resource_group" "rg" {
   count = var.resource_group == null ? 1 : 0
 
-  name     = "rg-${var.location}-${local.project}-${var.environment}"
+  name     = "rg-${lower(replace(var.location," ",""))}-${local.project}-${var.environment}"
   location = var.location
 
   tags = {
