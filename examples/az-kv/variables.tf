@@ -28,20 +28,3 @@ variable "environment" {
   default     = "dev"
 }
 
-variable "subnet_ids" {
-  description = "Subnet Ids for subnets that will connect to Azure Key Vault via service endpoints (if null new vnet will be created in the Azure region)"
-  type        = list(string)
-  default     = null
-}
-
-variable "server_name" {
-  description = "Name of your VM"
-  type        = string
-  default     = null
-}
-
-variable "vm_number" {
-  description = "Number of VMs behind the load balancer"
-  type        = number
-  default     = 0
-}
