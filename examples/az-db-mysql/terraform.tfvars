@@ -1,9 +1,0 @@
-subscriptionID = "8994e5d5-ce7a-43d8-b04a-b27879f44a3e"
-location = "canadacentral"
-resourceGroup = "rg-terraform-samples"
-environment = "dev"
-adminLogin = "radu"
-adminLoginPassword = "MySQLYourSQLOurSQL!"
-serverSku = "GP_Gen5_2"
-serverStorageMb = 5120
-serverVersion = "5.7"

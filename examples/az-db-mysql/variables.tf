@@ -1,43 +1,57 @@
-variable "subscriptionID" {
-    type = string
-    description = "Target subscription ID"
+#----------------------------------------------------------------------------
+# REQUIRED PARAMETERS: You must provide a value for each of these parameters.
+#----------------------------------------------------------------------------
+
+variable "subscription_id" {
+  description = "Target subscription ID"
+  type        = string
 }
 
 variable "location" {
-    type = string
-    description = "Location of your resource group"
+  description = "The Azure region where the resources are being deployed"
+  type        = string
 }
 
-variable "resourceGroup" {
-    type = string
-    description = "Name of your resource group"
+variable "admin_login" {
+  description = "MySQL Server administrator login"
+  type        = string
+}
+
+variable "admin_password" {
+  description = "MySQL Server administrator login password"
+  type        = string
+}
+
+#---------------------------------------------------------------
+# OPTIONAL PARAMETERS: These parameters have resonable defaults.
+#---------------------------------------------------------------
+
+variable "resource_group" {
+  description = "Name of your resource group (if not specified new resource group will be created in the Azure region)"
+  type        = string
+  default     = null
 }
 
 variable "environment" {
-    type = string
-    description   = "Environment i.e. dev, test, stage, prod" 
+  description = "Environment i.e. dev, test, stage, prod"
+  type        = string
+  default     = "dev"
 }
 
-variable "adminLogin" {
-    type = string
-    description = "MySQL Server administrator login"
+variable "server_sku" {
+  description = "MySQL Server SKU name"
+  type        = string
+  default     = "B_Gen5_2"
 }
 
-variable "adminLoginPassword" {
-    type = string
-    description = "MySQL Server administrator login password"
+variable "server_storage_mb" {
+  description = "MySQL Server storage in MB"
+  type        = number
+  default     = 5120
 }
 
-variable "serverSku" {
-    type = string
-    description = "MySQL Server SKU name"
-}
-
-variable "serverStorageMb" {
-    description = "MySQL Server storage in MB"
-}
-
-variable "serverVersion" {
-    type = string
-    description = "MySQL Server version i.e 5.7"
+variable "server_version" {
+  description = "MySQL Server version i.e 5.7"
+  type        = string
+  default     = "5.7"
 }
