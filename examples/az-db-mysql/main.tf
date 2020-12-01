@@ -59,8 +59,10 @@ resource "azurerm_mysql_server" "mysql_server" {
   backup_retention_days             = 7
   geo_redundant_backup_enabled      = false
   
-  # Encryption not supported on basic tier.
-  infrastructure_encryption_enabled = local.infrastructure_encryption_enabled
+  # Encryption not supported on basic tier. Uncomment if infrastructure double encryption is supported.
+  # https://docs.microsoft.com/en-us/azure/mysql/concepts-infrastructure-double-encryption
+  
+  # infrastructure_encryption_enabled = local.infrastructure_encryption_enabled
 
   # Turning off public network access is supported only on general purpose and memory optimized pricing tiers, not basic.
   public_network_access_enabled    = local.public_network_access_enabled
