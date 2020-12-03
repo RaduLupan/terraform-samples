@@ -24,17 +24,18 @@ provider "azurerm" {
 
 # Local calculated variables
 locals {
-  project            = "terraform-samples"
-  vnet_location      = data.azurerm_virtual_network.selected.location
-  subnet_id          = "${data.azurerm_virtual_network.selected.id}/subnets/${var.subnet_name}"
-  vnet_resource_group = var.vnet_resource_group == null ? azurerm_resource_group.rg[0].name : var.vnet_resource_group
+  project                = "terraform-samples"
+  vnet_location          = var.vnet_resource_group == null ? var.location : data.azurerm_virtual_network.selected[0].location
+  subnet_id              = var.vnet_resource_group == null ? azurerm_subnet.default[0].id : "${data.azurerm_virtual_network.selected[0].id}/subnets/${var.subnet_name}"
+  vnet_resource_group    = var.vnet_resource_group == null ? azurerm_resource_group.rg[0].name : var.vnet_resource_group
+  vnet_resource_group_id = var.vnet_resource_group == null ? azurerm_resource_group.rg[0].id : data.azurerm_resource_group.current[0].id
 }
 
 # Create resource group if var.vnet_resource_group is null
 resource "azurerm_resource_group" "rg" {
   count = var.vnet_resource_group == null ? 1 : 0
 
-  name     = "rg-${lower(replace(var.location," ",""))}-${local.project}-${var.environment}"
+  name     = "rg-${lower(replace(var.location, " ", ""))}-${local.project}-${var.environment}"
   location = var.location
 
   tags = {
@@ -44,8 +45,37 @@ resource "azurerm_resource_group" "rg" {
   }
 }
 
+# Create default vnet if var.vnet_resource_group is null
+resource "azurerm_virtual_network" "default" {
+  count = var.vnet_resource_group == null ? 1 : 0
+
+  name                = "vnet-${local.project}-${var.environment}-01"
+  location            = var.location
+  resource_group_name = local.vnet_resource_group
+  address_space       = ["172.31.0.0/16"]
+
+  tags = {
+    environment = var.environment
+    project     = local.project
+    terraform   = "true"
+  }
+}
+
+# Create default subnet if var.vnet_resource_group is null
+resource "azurerm_subnet" "default" {
+  count = var.vnet_resource_group == null ? 1 : 0
+
+  name                 = "default"
+  resource_group_name  = local.vnet_resource_group
+  virtual_network_name = azurerm_virtual_network.default[0].name
+  address_prefixes     = ["172.31.0.0/24"]
+  service_endpoints    = ["Microsoft.KeyVault", "Microsoft.Storage"]
+}
+
 # Use this data source to access information about an existing vNet.
 data "azurerm_virtual_network" "selected" {
+  count = var.vnet_resource_group == null ? 0 : 1
+
   name                = var.vnet_name
   resource_group_name = var.vnet_resource_group
 }
@@ -55,13 +85,13 @@ resource "azurerm_network_interface" "nic" {
 
   name                = "nic-${var.server_name}-${count.index}"
   location            = local.vnet_location
-  resource_group_name = var.vnet_resource_group
+  resource_group_name = local.vnet_resource_group
 
   ip_configuration {
-    name                                    = "ip-config-${count.index}"
-    subnet_id                               = local.subnet_id
-    private_ip_address_allocation           = "Dynamic"
-    public_ip_address_id                    = azurerm_public_ip.pip[count.index].id
+    name                          = "ip-config-${count.index}"
+    subnet_id                     = local.subnet_id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.pip[count.index].id
   }
 }
 
@@ -69,13 +99,14 @@ resource "azurerm_public_ip" "pip" {
   count = var.vm_count
 
   name                = "pip-${var.server_name}-${count.index}"
-  resource_group_name = var.vnet_resource_group
+  resource_group_name = local.vnet_resource_group
   location            = local.vnet_location
   allocation_method   = "Static"
   sku                 = "Standard"
   tags = {
     environment = var.environment
-    project = local.project
+    project     = local.project
+    terraform   = "true"
   }
 }
 
@@ -84,7 +115,7 @@ resource "azurerm_virtual_machine" "vm" {
 
   name                  = "vm-${var.server_name}-${count.index}"
   location              = local.vnet_location
-  resource_group_name   = var.vnet_resource_group
+  resource_group_name   = local.vnet_resource_group
   network_interface_ids = [element(azurerm_network_interface.nic.*.id, count.index)]
   vm_size               = "Standard_B1ms"
 
@@ -120,7 +151,8 @@ resource "azurerm_virtual_machine" "vm" {
 
   tags = {
     environment = var.environment
-    project = local.project
+    project     = local.project
+    terraform   = "true"
   }
 }
 
@@ -144,42 +176,45 @@ SETTINGS
 # Use this data source to access information about an existing Resource Group.
 # We will need the Resource Group Id to scope the rbac role assignement for vm01.
 data "azurerm_resource_group" "current" {
+  count = var.vnet_resource_group == null ? 0 : 1
+
   name = var.vnet_resource_group
 }
 
 # The Service Principal that Terraform uses needs to be able to create RBAC role assignments on the defined scope.
 # I had to elevate my Terraform Service Principal to Owner in order to be able to assign the Contributor role to the VM.
 resource "azurerm_role_assignment" "rbac_role_assignment_vm" {
-  count =  var.vm_count
-   
-  scope                = data.azurerm_resource_group.current.id
+  count = var.vm_count
+
+  scope                = local.vnet_resource_group_id
   role_definition_name = "Contributor"
   principal_id         = azurerm_virtual_machine.vm[count.index].identity[0].principal_id
-  
+
 }
 
 # Random string for the storage account name. Must be 3-24 characters, lowercase letters and numbers.
 resource "random_string" "random" {
-  length = 8
+  length  = 8
   special = false
 }
 
 # Create one storage account for VMs boot diags and everything else.
 resource "azurerm_storage_account" "storage_account" {
   name                     = "st${var.environment}${lower(random_string.random.result)}"
-  resource_group_name      = var.vnet_resource_group
+  resource_group_name      = local.vnet_resource_group
   location                 = local.vnet_location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
   # Restrict access to storage account endpoint to the vnet subnet via service endpoint.
-  /*network_rules {
+  network_rules {
     default_action             = "Deny"
     virtual_network_subnet_ids = [local.subnet_id]
-  }*/
+  }
 
-  tags = {
+ tags = {
     environment = var.environment
-    project = local.project
+    project     = local.project
+    terraform   = "true"
   }
 }

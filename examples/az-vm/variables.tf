@@ -13,13 +13,13 @@ variable "location" {
 }
 
 variable "vm_admin_user" {
-    description = "Admin user name"
-    type        = string
+  description = "Admin user name"
+  type        = string
 }
 
 variable "vm_admin_password" {
-    description = "Admin password"
-    type        = string
+  description = "Admin password"
+  type        = string
 }
 
 #---------------------------------------------------------------
@@ -39,25 +39,25 @@ variable "vnet_resource_group" {
 }
 
 variable "vnet_name" {
-    description = "The name for existing vNet (if null new vNet is created)"
-    type        = string
-    default     = null
+  description = "The name for existing vNet (if null new vNet is created)"
+  type        = string
+  default     = null
 }
 
 variable "subnet_name" {
-    description  = "The name for the subnet that the VMs will sit on (if null new subnet is created)"
-    type         = string
-    default      = null
+  description = "The name for the subnet that the VMs will sit on (if null new subnet is created)"
+  type        = string
+  default     = null
 }
 
 variable "server_name" {
-    description = "Name of your VM"
-    type        = string
-    default     = "ubuntu"
-} 
+  description = "Name of your VM"
+  type        = string
+  default     = "ubuntu"
+}
 
 variable "vm_count" {
-    description = "Number of deployed VMs"
-    type        = number
-    default     = 2
+  description = "Number of deployed VMs"
+  type        = number
+  default     = 2
 }
