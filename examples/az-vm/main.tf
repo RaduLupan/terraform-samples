@@ -1,49 +1,90 @@
 # This template deploys the following Azure resources:
-# - A number of vmNumber Linux Virtual Machine in an existing Resource Group and existing Virtual Network/Subnet
+# - A number of vm_count Linux Virtual Machine in an existing Resource Group and existing Virtual Network/Subnet
 # - Public IPs associated with all VM NICs
 # - No Network Security Group for VMs as they inherit the NSG applied at the subnet level
 # - Custom script VM extensions for all VMs that install Azure CLI
 # - SystemAssigned Identities for all VMs with corresponding RBAC role assignments that give Contributor role scoped to the current resource group
 # - 1 x Storage Account used for boot diags for VMs and everything else
 
-# Terraform 0.12 syntax is used so 0.12 is the minimum required version
 terraform {
-  required_version = ">= 0.12"
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "2.37.0"
+    }
+  }
+
+  required_version = "~> 0.13.0"
 }
 
 provider "azurerm" {
-    version = "2.0.0"
-    subscription_id = var.subscriptionID
-    features {}
+  subscription_id = var.subscription_id
+  features {}
 }
 
-# Use locals block for simple constants or calculated variables. https://www.terraform.io/docs/configuration/locals.html
+# Local calculated variables
 locals {
-    project = "terraform-samples"
-    environment = "dev"
+  project            = "terraform-samples"
+  vnet_location      = data.azurerm_virtual_network.selected.location
+  subnet_id          = "${data.azurerm_virtual_network.selected.id}/subnets/${var.subnet_name}"
+  vnet_resource_group = var.vnet_resource_group == null ? azurerm_resource_group.rg[0].name : var.vnet_resource_group
+}
+
+# Create resource group if var.vnet_resource_group is null
+resource "azurerm_resource_group" "rg" {
+  count = var.vnet_resource_group == null ? 1 : 0
+
+  name     = "rg-${lower(replace(var.location," ",""))}-${local.project}-${var.environment}"
+  location = var.location
+
+  tags = {
+    environment = var.environment
+    project     = local.project
+    terraform   = "true"
+  }
+}
+
+# Use this data source to access information about an existing vNet.
+data "azurerm_virtual_network" "selected" {
+  name                = var.vnet_name
+  resource_group_name = var.vnet_resource_group
 }
 
 resource "azurerm_network_interface" "nic" {
-  count = var.vmNumber
+  count = var.vm_count
 
-  name                = "nic-${var.serverName}-${count.index}"
-  location            = var.location
-  resource_group_name = var.resourceGroup
+  name                = "nic-${var.server_name}-${count.index}"
+  location            = local.vnet_location
+  resource_group_name = var.vnet_resource_group
 
   ip_configuration {
     name                                    = "ip-config-${count.index}"
-    subnet_id                               = var.subnetId
+    subnet_id                               = local.subnet_id
     private_ip_address_allocation           = "Dynamic"
     public_ip_address_id                    = azurerm_public_ip.pip[count.index].id
   }
 }
 
-resource "azurerm_virtual_machine" "vm" {
-  count = var.vmNumber
+resource "azurerm_public_ip" "pip" {
+  count = var.vm_count
 
-  name                  = "vm-${var.serverName}-${count.index}"
-  location              = var.location
-  resource_group_name   = var.resourceGroup
+  name                = "pip-${var.server_name}-${count.index}"
+  resource_group_name = var.vnet_resource_group
+  location            = local.vnet_location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  tags = {
+    environment = var.environment
+    project = local.project
+  }
+}
+
+resource "azurerm_virtual_machine" "vm" {
+  count = var.vm_count
+
+  name                  = "vm-${var.server_name}-${count.index}"
+  location              = local.vnet_location
+  resource_group_name   = var.vnet_resource_group
   network_interface_ids = [element(azurerm_network_interface.nic.*.id, count.index)]
   vm_size               = "Standard_B1ms"
 
@@ -56,15 +97,15 @@ resource "azurerm_virtual_machine" "vm" {
     version   = "latest"
   }
   storage_os_disk {
-    name              = "os-disk-${var.serverName}-${count.index}"
+    name              = "os-disk-${var.server_name}-${count.index}"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
   os_profile {
-    computer_name  = "var.serverName-${count.index}"
-    admin_username = var.vmAdminUser
-    admin_password = var.vmAdminPassword
+    computer_name  = "${var.server_name}-${count.index}"
+    admin_username = var.vm_admin_user
+    admin_password = var.vm_admin_password
   }
   os_profile_linux_config {
     disable_password_authentication = false
@@ -78,15 +119,15 @@ resource "azurerm_virtual_machine" "vm" {
   }
 
   tags = {
-    environment = "${local.environment}"
-    project = "${local.project}"
+    environment = var.environment
+    project = local.project
   }
 }
 
 resource "azurerm_virtual_machine_extension" "custom_script" {
-  count = var.vmNumber
+  count = var.vm_count
 
-  name                 = "${var.serverName}-${count.index}"
+  name                 = "${var.server_name}-${count.index}"
   virtual_machine_id   = element(azurerm_virtual_machine.vm.*.id, count.index)
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
@@ -100,30 +141,16 @@ resource "azurerm_virtual_machine_extension" "custom_script" {
 SETTINGS
 }
 
-resource "azurerm_public_ip" "pip" {
-  count = var.vmNumber
-
-  name                = "pip-${var.serverName}-${count.index}"
-  resource_group_name = var.resourceGroup
-  location            = var.location
-  allocation_method   = "Static"
-  sku                 = "Standard"
-  tags = {
-    environment = "${local.environment}"
-    project = "${local.project}"
-  }
-}
-
 # Use this data source to access information about an existing Resource Group.
 # We will need the Resource Group Id to scope the rbac role assignement for vm01.
 data "azurerm_resource_group" "current" {
-  name = var.resourceGroup
+  name = var.vnet_resource_group
 }
 
 # The Service Principal that Terraform uses needs to be able to create RBAC role assignments on the defined scope.
 # I had to elevate my Terraform Service Principal to Owner in order to be able to assign the Contributor role to the VM.
 resource "azurerm_role_assignment" "rbac_role_assignment_vm" {
-  count =  var.vmNumber
+  count =  var.vm_count
    
   scope                = data.azurerm_resource_group.current.id
   role_definition_name = "Contributor"
@@ -139,20 +166,20 @@ resource "random_string" "random" {
 
 # Create one storage account for VMs boot diags and everything else.
 resource "azurerm_storage_account" "storage_account" {
-  name                     = "st${local.environment}${lower(random_string.random.result)}"
-  resource_group_name      = var.resourceGroup
-  location                 = var.location
+  name                     = "st${var.environment}${lower(random_string.random.result)}"
+  resource_group_name      = var.vnet_resource_group
+  location                 = local.vnet_location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
   # Restrict access to storage account endpoint to the vnet subnet via service endpoint.
-  network_rules {
+  /*network_rules {
     default_action             = "Deny"
-    virtual_network_subnet_ids = [var.subnetId]
-  }
+    virtual_network_subnet_ids = [local.subnet_id]
+  }*/
 
   tags = {
-    environment = "${local.environment}"
-    project = "${local.project}"
+    environment = var.environment
+    project = local.project
   }
 }
