@@ -192,7 +192,6 @@ resource "azurerm_role_assignment" "rbac_role_assignment_vm" {
   scope                = local.vnet_resource_group_id
   role_definition_name = "Contributor"
   principal_id         = azurerm_virtual_machine.vm[count.index].identity[0].principal_id
-
 }
 
 # Random string for the storage account name. Must be 3-24 characters, lowercase letters and numbers.
@@ -209,11 +208,13 @@ resource "azurerm_storage_account" "storage_account" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  # Restrict access to storage account endpoint to the vnet subnet via service endpoint.
+  # Restrict access to storage account endpoint to the vnet subnet via service endpoint. Uncomment if your subnet has an endpoint for Microsoft.Storage.
+  /*
   network_rules {
     default_action             = "Deny"
     virtual_network_subnet_ids = [local.subnet_id]
   }
+  */
 
  tags = {
     environment = var.environment
