@@ -1,10 +1,13 @@
 # This template deploys the following Azure resources:
-# - A number of vm_count Linux Virtual Machine in an existing Resource Group and existing Virtual Network/Subnet
+# - A number of vm_count Linux Virtual Machine 
 # - Public IPs associated with all VM NICs
 # - No Network Security Group for VMs as they inherit the NSG applied at the subnet level
 # - Custom script VM extensions for all VMs that install Azure CLI
 # - SystemAssigned Identities for all VMs with corresponding RBAC role assignments that give Contributor role scoped to the current resource group
 # - 1 x Storage Account used for boot diags for VMs and everything else
+
+# If var.vnet_resource_group, var.vnet_name and var.subnet_name have not null values then VMs are created in the specified resource group and vNet.
+# If var.vnet_resource_group is null then new resource group, new vNet with default subnet are created and the VMs will sit on the default subnet.
 
 terraform {
   required_providers {
