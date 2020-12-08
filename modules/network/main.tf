@@ -6,7 +6,7 @@
 
 # Terraform 0.12 syntax is used so 0.12 is the minimum required version
 terraform {
-  required_version = ">= 0.12"
+  required_version = "~> 0.13.0"
 }
 
 # Use locals block for simple constants or calculated variables. 
@@ -16,7 +16,7 @@ locals {
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = "rg-${local.project}-${var.environment}-${var.location}"
+  name     = "rg-${local.project}-${var.environment}-${lower(replace(var.location," ",""))}"
   location = var.location
 }
 
@@ -53,9 +53,10 @@ resource "azurerm_network_security_rule" "nsg_inbound_rule" {
   network_security_group_name = azurerm_network_security_group.frontend_nsg.name
 }
 
-# SSH is only allowed from certain source_address_prefix so this rule is created separately.
-# Ideally I want this rule to be built in the same for_each loop.
-resource "azurerm_network_security_rule" "allow_ssh_rule" {
+# If var.allowed_ssh_address_prefix is not null then create allow_ssh rule
+resource "azurerm_network_security_rule" "allow_ssh" {
+  count = var.allowed_ssh_address_prefix == null ? 0 : 1
+
   name                        = "allow-tcp-22"
   priority                    = 110
   direction                   = "Inbound"
@@ -63,9 +64,9 @@ resource "azurerm_network_security_rule" "allow_ssh_rule" {
   protocol                    = "Tcp"
   source_port_range           = "*"
   destination_port_range      = "*"
-  source_address_prefix       = var.allowedSshAddressPrefix
+  source_address_prefix       = var.allowed_ssh_address_prefix
   destination_address_prefix  = "*"
-  description                 = "Allows SSH from restricted CIDR range"  
+  description                 = "Allows SSH from restricted CIDR range"
   resource_group_name         = azurerm_resource_group.rg.name
   network_security_group_name = azurerm_network_security_group.frontend_nsg.name
 }
@@ -74,7 +75,7 @@ resource "azurerm_virtual_network" "vnet1" {
   name                = "vnet-${local.project}-${var.environment}-${var.location}-01"
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
-  address_space       = [var.vNetAddressSpace]
+  address_space       = [var.vnet_address_space]
 
   tags = {
     project     = "${local.project}"
@@ -86,7 +87,7 @@ resource "azurerm_subnet" "subnet1" {
   name                 = "frontend"
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet1.name
-  address_prefixes     = [var.frontEndSubnetAddressPrefix]
+  address_prefixes     = [var.frontend_subnet_address_prefix]
   service_endpoints    =["Microsoft.KeyVault", "Microsoft.Storage", "Microsoft.Sql"] 
 }
 
