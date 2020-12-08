@@ -1,31 +1,42 @@
-variable "subscriptionID" {
-    description = "Target subscription ID"
-    type        = string
+#----------------------------------------------------------------------------
+# REQUIRED PARAMETERS: You must provide a value for each of these parameters.
+#----------------------------------------------------------------------------
+
+variable "subscription_id" {
+  description = "Target subscription ID"
+  type        = string
 }
 
 variable "location" {
-    description = "Location of your resource group"
-    type        = string
+  description = "The Azure region where the resources are being deployed"
+  type        = string
 }
+
+#---------------------------------------------------------------
+# OPTIONAL PARAMETERS: These parameters have resonable defaults.
+#---------------------------------------------------------------
 
 variable "environment" {
-    description   = "Environment i.e. dev, test, stage, prod" 
-    type          = string
+  description = "Environment i.e. dev, test, stage, prod"
+  type        = string
+  default     = "dev"
 }
 
-variable "vNetAddressSpace" {
-    description = "Address space for your vNet in CIDR notation"
-    type        = string
+variable "vnet_address_space" {
+  description = "Address space for your vNet in CIDR notation"
+  type        = string
+  default     = "10.0.0.0/16"
 }
 
-variable "frontEndSubnetAddressPrefix" {
-    description = "Address prefix for your front end subnet in CIDR notation"
-    type        = string
-    
+variable "frontend_subnet_address_prefix" {
+  description = "Address prefix for your front end subnet in CIDR notation"
+  type        = string
+  default     = "10.0.0.0/24"
+
 }
 
-variable "allowedSshAddressPrefix" {
-    description = "Address prefix for your range of IPs allowed for SSH in CIDR notation"
-    type        = string
-    
+variable "allowed_ssh_address_prefix" {
+  description = "Address prefix for your range of IPs allowed for SSH in CIDR notation"
+  type        = string
+  default     = null
 }
