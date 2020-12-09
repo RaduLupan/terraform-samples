@@ -14,7 +14,6 @@ provider "azurerm" {
   features {}
 }
 
-/*
 module "network" {
   source = "../../modules/network"
 
@@ -25,4 +24,3 @@ module "network" {
   frontend_subnet_address_prefix = var.frontend_subnet_address_prefix
   allowed_ssh_address_prefix     = var.allowed_ssh_address_prefix
 }
-*/
