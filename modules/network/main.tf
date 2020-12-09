@@ -12,11 +12,15 @@ terraform {
 # Use locals block for simple constants or calculated variables. 
 # https://www.terraform.io/docs/configuration/locals.html
 locals {
-    project = "terraform-samples-modules"
+  project = "terraform-samples-modules"
+  public_nsg_inbound_rules = { 
+    100 = 80
+    101 = 443  
+  }
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = "rg-${local.project}-${var.environment}-${lower(replace(var.location," ",""))}"
+  name     = "rg-${local.project}-${var.environment}-${lower(replace(var.location, " ", ""))}"
   location = var.location
 }
 
@@ -26,19 +30,9 @@ resource "azurerm_network_security_group" "frontend_nsg" {
   resource_group_name = azurerm_resource_group.rg.name
 }
 
-variable "public_nsg_inbound_rules" {
-  type        = map
-  description = "A map of allowed inbound ports and their priority values"
-  default     = {
-    100 = 80
-    101 = 443
-  }
-
-}
-
 # Rules created in for_each loop based on mapped port-priority values.
 resource "azurerm_network_security_rule" "nsg_inbound_rule" {
-  for_each = var.public_nsg_inbound_rules
+  for_each                    = local.public_nsg_inbound_rules
   name                        = "allow-tcp-${each.value}"
   priority                    = each.key
   direction                   = "Inbound"
@@ -48,7 +42,7 @@ resource "azurerm_network_security_rule" "nsg_inbound_rule" {
   destination_port_range      = each.value
   source_address_prefix       = "*"
   destination_address_prefix  = "*"
-  description                 = "Allows TCP ${each.value} from anywhere"  
+  description                 = "Allows TCP ${each.value} from anywhere"
   resource_group_name         = azurerm_resource_group.rg.name
   network_security_group_name = azurerm_network_security_group.frontend_nsg.name
 }
@@ -72,13 +66,13 @@ resource "azurerm_network_security_rule" "allow_ssh" {
 }
 
 resource "azurerm_virtual_network" "vnet1" {
-  name                = "vnet-${local.project}-${var.environment}-${var.location}-01"
+  name                = "vnet-${local.project}-${var.environment}-${lower(replace(var.location, " ", ""))}-01"
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
   address_space       = [var.vnet_address_space]
 
   tags = {
-    project     = "${local.project}"
+    project     = local.project
     environment = var.environment
   }
 }
@@ -88,18 +82,10 @@ resource "azurerm_subnet" "subnet1" {
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet1.name
   address_prefixes     = [var.frontend_subnet_address_prefix]
-  service_endpoints    =["Microsoft.KeyVault", "Microsoft.Storage", "Microsoft.Sql"] 
+  service_endpoints    = ["Microsoft.KeyVault", "Microsoft.Storage", "Microsoft.Sql"]
 }
 
 resource "azurerm_subnet_network_security_group_association" "frontend_nsg_association" {
   subnet_id                 = azurerm_subnet.subnet1.id
   network_security_group_id = azurerm_network_security_group.frontend_nsg.id
-}
-
-output "rg-name" {
-  value = azurerm_resource_group.rg.name
-}
-
-output "fe-subnet-id" {
-  value = azurerm_subnet.subnet1.id
 }
