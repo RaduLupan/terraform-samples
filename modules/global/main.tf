@@ -5,10 +5,8 @@
 # - 1 x Storage Account with 1 x blob container
 # - 1 x CDN profile with 1 x endpoint pointing to the blob storage for origin
 
-
-# Terraform 0.12 syntax is used so 0.12 is the minimum required version
 terraform {
-  required_version = ">= 0.12"
+  required_version = "~> 0.13.0"
 }
 
 locals {
@@ -28,7 +26,7 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "az_key_vault" {
   name                        = "kv-${var.environment}-${lower(random_string.random.result)}"
   location                    = var.location
-  resource_group_name         = var.resourceGroup
+  resource_group_name         = var.resource_group
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_enabled         = true
@@ -48,7 +46,7 @@ resource "azurerm_key_vault" "az_key_vault" {
   network_acls {
     default_action             = "Deny"
     bypass                     = "AzureServices"
-    virtual_network_subnet_ids = var.subnetIds
+    virtual_network_subnet_ids = var.subnet_ids
   }
 
   tags = {
@@ -60,14 +58,14 @@ resource "azurerm_key_vault" "az_key_vault" {
 
 # Use this data source to access information about an existing Virtual Machine.
 data "azurerm_virtual_machine" "web" {
-  count = var.vmNumber
+  count = var.vm_count
   
-  name                = "vm-${var.serverName}-0${count.index}"
-  resource_group_name = var.resourceGroup
+  name                = "vm-${var.server_name}-${count.index}"
+  resource_group_name = var.resource_group
 }
 
 resource "azurerm_key_vault_access_policy" "web_key_vault_access_policy" {
-  count = var.vmNumber
+  count = var.vm_count
 
   key_vault_id = azurerm_key_vault.az_key_vault.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
@@ -103,15 +101,20 @@ resource "azurerm_key_vault_access_policy" "web_key_vault_access_policy" {
 
 resource "azurerm_storage_account" "storage_account" {
   name                     = "st${var.environment}${lower(random_string.random.result)}"
-  resource_group_name      = var.resourceGroup
+  resource_group_name      = var.resource_group
   location                 = var.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  # Public access is required for CDN to be able to serve content from the blob container.
+# Public access is required for CDN to be able to serve content from the blob container.
+  allow_blob_public_access = "true"
+
   network_rules {
     default_action = "Allow"
   }
+
+  # If no SSL certificate present you need to disable https_traffic_only
+  enable_https_traffic_only = "false"
 
   tags = {
     environment = var.environment
@@ -129,8 +132,8 @@ resource "azurerm_storage_container" "container" {
 resource "azurerm_cdn_profile" "cdn_profile" {
   name                = "cdn-profile-${var.environment}-${lower(random_string.random.result)}"
   location            = var.location
-  resource_group_name = var.resourceGroup
-  sku                 = var.cdnSku
+  resource_group_name = var.resource_group
+  sku                 = var.cdn_sku
 
   tags = {
     environment = var.environment
@@ -140,10 +143,10 @@ resource "azurerm_cdn_profile" "cdn_profile" {
 
 resource "azurerm_cdn_endpoint" "cdn_endpoint" {
   # Creates the CDN endpoint name out of the domain name to ensure uniqueness, i.e. cdn-example-com
-  name                = join("-",["cdn",replace(var.cdnEndpointDomain,".","-")])
+  name                = join("-",["cdn",replace(var.cdn_endpoint_domain,".","-")])
   profile_name        = azurerm_cdn_profile.cdn_profile.name
   location            = var.location
-  resource_group_name = var.resourceGroup
+  resource_group_name = var.resource_group
 
   origin {
     name      = "cdn-endpoint-origin"
