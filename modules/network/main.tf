@@ -12,15 +12,21 @@ terraform {
 # Use locals block for simple constants or calculated variables. 
 # https://www.terraform.io/docs/configuration/locals.html
 locals {
-  project = "terraform-samples-modules"
-  public_nsg_inbound_rules = { 
+
+  common_tags = {
+    project     = "terraform-samples-modules"
+    environment = var.environment
+    terraform   = true
+  }
+
+  public_nsg_inbound_rules = {
     100 = 80
-    101 = 443  
+    101 = 443
   }
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = "rg-${local.project}-${var.environment}-${lower(replace(var.location, " ", ""))}"
+  name     = "rg-${local.common_tags["project"]}-${var.environment}-${lower(replace(var.location, " ", ""))}"
   location = var.location
 }
 
@@ -66,15 +72,12 @@ resource "azurerm_network_security_rule" "allow_ssh" {
 }
 
 resource "azurerm_virtual_network" "vnet1" {
-  name                = "vnet-${local.project}-${var.environment}-${lower(replace(var.location, " ", ""))}-01"
+  name                = "vnet-${local.common_tags["project"]}-${var.environment}-${lower(replace(var.location, " ", ""))}-01"
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
   address_space       = [var.vnet_address_space]
 
-  tags = {
-    project     = local.project
-    environment = var.environment
-  }
+  tags = local.common_tags
 }
 
 resource "azurerm_subnet" "subnet1" {
