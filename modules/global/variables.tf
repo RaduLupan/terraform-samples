@@ -30,25 +30,25 @@ variable "environment" {
 
 ######
 variable "subnet_ids" {
-    description = "List of subnet Ids that are allowed through the Key Vault firewall"
-    type        = list(string)
+  description = "List of subnet Ids that are allowed through the Key Vault firewall"
+  type        = list(string)
 }
 
 variable "server_name" {
-    description = "Name of your VM"
-    type        = string
+  description = "Name of your VM"
+  type        = string
 }
 
 variable "vm_count" {
-    description = "Number of VMs behind the load balancer"
+  description = "Number of VMs behind the load balancer"
 }
 
 variable "cdn_sku" {
-    description = "Pricing tier i.e.  Standard_Akamai, Standard_Microsoft, Standard_Verizon or Premium_Verizon"
-    type        = string
+  description = "Pricing tier i.e.  Standard_Akamai, Standard_Microsoft, Standard_Verizon or Premium_Verizon"
+  type        = string
 }
 
 variable "cdn_endpoint_domain" {
-    description   = "Name of DNS domain that points to the CDN endpoint i.e. example.com" 
-    type          = string
+  description = "Name of DNS domain that points to the CDN endpoint i.e. example.com"
+  type        = string
 }

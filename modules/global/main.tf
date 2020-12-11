@@ -10,13 +10,17 @@ terraform {
 }
 
 locals {
-    project = "terraform-samples-modules"
-    role= "global"
+  common_tags = {
+    terraform   = true
+    environment = var.environment
+    project     = "terraform-samples-modules"
+    role        = "global"
+  }
 }
 
 # The random string needed for injecting randomness in the name for storage account, blob container and key vault.
 resource "random_string" "random" {
-  length = 4
+  length  = 4
   special = false
 }
 
@@ -49,17 +53,13 @@ resource "azurerm_key_vault" "az_key_vault" {
     virtual_network_subnet_ids = var.subnet_ids
   }
 
-  tags = {
-    environment = var.environment
-    project     = "${local.project}"
-    role        = "${local.role}"
-  }
+  tags = local.common_tags
 }
 
 # Use this data source to access information about an existing Virtual Machine.
 data "azurerm_virtual_machine" "web" {
   count = var.vm_count
-  
+
   name                = "vm-${var.server_name}-${count.index}"
   resource_group_name = var.resource_group
 }
@@ -69,14 +69,14 @@ resource "azurerm_key_vault_access_policy" "web_key_vault_access_policy" {
 
   key_vault_id = azurerm_key_vault.az_key_vault.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  
+
   # In order to be able to export the identity of a VM I had to upgrade the provider version to 2.10.0.
   # https://github.com/terraform-providers/terraform-provider-azurerm/pull/6826
   # Also, had to check the properties of a VM in terraform.tfstate file to figure out that identity is a list, identity[0] is the first object in that list
   # and principal_id is one of its properties.
   # Finally, in order to resolve ${count.index} you need to enclose it in quotes, NOT the entire expresion as a Powershell user might think!
-  object_id    = data.azurerm_virtual_machine.web["${count.index}"].identity[0].principal_id
-  
+  object_id = data.azurerm_virtual_machine.web["${count.index}"].identity[0].principal_id
+
   key_permissions = [
     "get",
     "list",
@@ -106,7 +106,7 @@ resource "azurerm_storage_account" "storage_account" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-# Public access is required for CDN to be able to serve content from the blob container.
+  # Public access is required for CDN to be able to serve content from the blob container.
   allow_blob_public_access = "true"
 
   network_rules {
@@ -116,14 +116,11 @@ resource "azurerm_storage_account" "storage_account" {
   # If no SSL certificate present you need to disable https_traffic_only
   enable_https_traffic_only = "false"
 
-  tags = {
-    environment = var.environment
-    project = "${local.project}"
-  }
+  tags = local.common_tags
 }
 
 resource "azurerm_storage_container" "container" {
-  name                  = "${local.project}-${var.environment}-${var.location}-${lower(random_string.random.result)}"
+  name = "${local.common_tags["project"]}-${var.environment}-${var.location}-${lower(random_string.random.result)}"
   # Blob access type means "anonymous read access for blobs only". 
   container_access_type = "blob"
   storage_account_name  = azurerm_storage_account.storage_account.name
@@ -135,24 +132,21 @@ resource "azurerm_cdn_profile" "cdn_profile" {
   resource_group_name = var.resource_group
   sku                 = var.cdn_sku
 
-  tags = {
-    environment = var.environment
-    project = "${local.project}"
-  }
+  tags = local.common_tags
 }
 
 resource "azurerm_cdn_endpoint" "cdn_endpoint" {
   # Creates the CDN endpoint name out of the domain name to ensure uniqueness, i.e. cdn-example-com
-  name                = join("-",["cdn",replace(var.cdn_endpoint_domain,".","-")])
+  name                = join("-", ["cdn", replace(var.cdn_endpoint_domain, ".", "-")])
   profile_name        = azurerm_cdn_profile.cdn_profile.name
   location            = var.location
   resource_group_name = var.resource_group
 
   origin {
-    name      = "cdn-endpoint-origin"
+    name = "cdn-endpoint-origin"
     # Connect CDN endpoint to blob storage origin. Access cached content via http://<endpoint-name>.azureedge.net/<myPublicContainer>/<BlobName>.
     host_name = azurerm_storage_account.storage_account.primary_blob_host
   }
-  
+
   origin_host_header = azurerm_storage_account.storage_account.primary_blob_host
 }
