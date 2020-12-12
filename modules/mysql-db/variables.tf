@@ -55,9 +55,3 @@ variable "server_version" {
   type        = string
   default     = "5.7"
 }
-
-variable "subnet_id" {
-  description = "Id of the virtual network subnet allowed to connect to the MySQL server"
-  type        = string
-  default     = null
-}
