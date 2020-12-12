@@ -6,6 +6,9 @@ terraform {
 }
 
 locals {
+  resource_group     = var.resource_group == null ? azurerm_resource_group.rg[0].name : var.resource_group
+  cached_content_url = "http://${azurerm_cdn_endpoint.cdn_endpoint.name}.azureedge.net/${azurerm_storage_container.container.name}/<BlobName>"
+
   common_tags = {
     terraform   = true
     environment = var.environment
@@ -14,9 +17,25 @@ locals {
   }
 }
 
+# Create Resource Group if var.resource_group is null
+resource "azurerm_resource_group" "rg" {
+  count = var.resource_group == null ? 1 : 0
+
+  name     = "rg-${lower(replace(var.location," ",""))}-${local.common_tags["project"]}-${var.environment}"
+  location = var.location
+
+  tags = local.common_tags
+}
+
+# The random string needed for injecting randomness in the storage account and blob container names.
+resource "random_string" "random" {
+  length  = 4
+  special = false
+}
+
 resource "azurerm_storage_account" "storage_account" {
   name                     = "st${var.environment}${lower(random_string.random.result)}"
-  resource_group_name      = var.resource_group
+  resource_group_name      = local.resource_group
   location                 = var.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
@@ -35,16 +54,18 @@ resource "azurerm_storage_account" "storage_account" {
 }
 
 resource "azurerm_storage_container" "container" {
-  name = "${local.common_tags["project"]}-${var.environment}-${var.location}-${lower(random_string.random.result)}"
+  name = "${local.common_tags["project"]}-${var.environment}-${lower(replace(var.location," ",""))}-${lower(random_string.random.result)}"
+
   # Blob access type means "anonymous read access for blobs only". 
   container_access_type = "blob"
-  storage_account_name  = azurerm_storage_account.storage_account.name
+
+  storage_account_name = azurerm_storage_account.storage_account.name
 }
 
 resource "azurerm_cdn_profile" "cdn_profile" {
   name                = "cdn-profile-${var.environment}-${lower(random_string.random.result)}"
   location            = var.location
-  resource_group_name = var.resource_group
+  resource_group_name = local.resource_group
   sku                 = var.cdn_sku
 
   tags = local.common_tags
@@ -55,7 +76,7 @@ resource "azurerm_cdn_endpoint" "cdn_endpoint" {
   name                = join("-", ["cdn", replace(var.cdn_endpoint_domain, ".", "-")])
   profile_name        = azurerm_cdn_profile.cdn_profile.name
   location            = var.location
-  resource_group_name = var.resource_group
+  resource_group_name = local.resource_group
 
   origin {
     name = "cdn-endpoint-origin"
@@ -64,4 +85,6 @@ resource "azurerm_cdn_endpoint" "cdn_endpoint" {
   }
 
   origin_host_header = azurerm_storage_account.storage_account.primary_blob_host
+
+  tags = local.common_tags
 }
