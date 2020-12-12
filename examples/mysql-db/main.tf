@@ -14,8 +14,8 @@ provider "azurerm" {
   features {}
 }
 
-module "data" {
-  source = "../../modules/data"
+module "mysql-db" {
+  source = "../../modules/mysql-db"
 
   subscription_id     = var.subscription_id
   location            = var.location
