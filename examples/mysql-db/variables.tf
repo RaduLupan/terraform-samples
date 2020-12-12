@@ -41,7 +41,7 @@ variable "environment" {
 variable "server_sku" {
   description = "MySQL Server SKU name"
   type        = string
-  default     = "GP_Gen5_4"
+  default     = "B_Gen5_2"
 }
 
 variable "server_storage_mb" {
