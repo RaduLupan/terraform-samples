@@ -20,9 +20,6 @@ locals {
   # Boolean flags turned on/off if basic tier of mysql server is chosen.
   public_network_access_enabled     = lower(substr(var.server_sku, 0, 1)) == "b" ? true : false
   infrastructure_encryption_enabled = lower(substr(var.server_sku, 0, 1)) == "b" ? false : true
-
-  # If sku tier is Basic or var.subnet_id is null then no vnet rules required.
-  mysql_vnet_rule_count = lower(substr(var.server_sku, 0, 1)) == "b" || var.subnet_id == null ? 0 : 1
 }
 
 # Create Resource Group if var.resource_group is null
@@ -62,17 +59,6 @@ resource "azurerm_mysql_server" "mysql_server" {
   ssl_minimal_tls_version_enforced = "TLS1_2"
 
   tags = local.common_tags
-}
-
-# Virtual Network rules do not work on Basic Sku, make sure you use a General Purpose or Memory Optimized server.
-# https://docs.microsoft.com/en-us/azure/mysql/concepts-data-access-and-security-vnet
-resource "azurerm_mysql_virtual_network_rule" "mysql_vnet_rule" {
-  count = local.mysql_vnet_rule_count
-
-  name                = "rule-allow-frontend-subnet"
-  resource_group_name = local.resource_group
-  server_name         = azurerm_mysql_server.mysql_server.name
-  subnet_id           = var.subnet_id
 }
 
 resource "azurerm_mysql_database" "mysql_db" {

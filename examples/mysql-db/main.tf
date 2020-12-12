@@ -28,5 +28,4 @@ module "mysql-db" {
   server_sku          = var.server_sku
   server_storage_mb   = var.server_storage_mb
   server_version      = var.server_version
-  subnet_id           = var.subnet_id
 }
