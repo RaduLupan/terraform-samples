@@ -1,6 +1,6 @@
 # This module deploys the following Azure resources:
 # - 1 x Load Balancer with 1 x Public IP, 1 x Backend Pool, 1 x Probe and 1 x Rule
-# - A number of vmNumber Linux Virtual Machines in an existing Resource Group and existing Virtual Network/Subnet
+# - A number of vm_count Linux Virtual Machines in an existing Resource Group and existing Virtual Network/Subnet
 # - No Network Security Group for VMs as they inherit the NSG applied at the subnet level
 # - Custom script VM extensions for all VMs that install Apache
 # - Connects the VM NICs to the Load Balancer Backend Pool via azurerm_network_interface_backend_address_pool_association
@@ -10,17 +10,70 @@
 
 # Terraform 0.12 syntax is used so 0.12 is the minimum required version
 terraform {
-  required_version = ">= 0.12"
+  required_version = "~> 0.13.0"
 }
 
 locals {
-    project = "terraform-samples-modules"  
-    role= "web"
+  project                = "terraform-samples-lb-vm"
+  vnet_location          = var.vnet_resource_group == null ? var.location : data.azurerm_virtual_network.selected[0].location
+  subnet_id              = var.vnet_resource_group == null ? azurerm_subnet.default[0].id : "${data.azurerm_virtual_network.selected[0].id}/subnets/${var.subnet_name}"
+  vnet_resource_group    = var.vnet_resource_group == null ? azurerm_resource_group.rg[0].name : var.vnet_resource_group
+  vnet_resource_group_id = var.vnet_resource_group == null ? azurerm_resource_group.rg[0].id : data.azurerm_resource_group.current[0].id
 }
 
+# Create resource group if var.vnet_resource_group is null
+resource "azurerm_resource_group" "rg" {
+  count = var.vnet_resource_group == null ? 1 : 0
+
+  name     = "rg-${lower(replace(var.location, " ", ""))}-${local.project}-${var.environment}"
+  location = var.location
+
+  tags = {
+    environment = var.environment
+    project     = local.project
+    terraform   = "true"
+  }
+}
+
+# Create default vnet if var.vnet_resource_group is null
+resource "azurerm_virtual_network" "default" {
+  count = var.vnet_resource_group == null ? 1 : 0
+
+  name                = "vnet-${local.project}-${var.environment}-01"
+  location            = var.location
+  resource_group_name = local.vnet_resource_group
+  address_space       = ["172.31.0.0/16"]
+
+  tags = {
+    environment = var.environment
+    project     = local.project
+    terraform   = "true"
+  }
+}
+
+# Create default subnet if var.vnet_resource_group is null
+resource "azurerm_subnet" "default" {
+  count = var.vnet_resource_group == null ? 1 : 0
+
+  name                 = "default"
+  resource_group_name  = local.vnet_resource_group
+  virtual_network_name = azurerm_virtual_network.default[0].name
+  address_prefixes     = ["172.31.0.0/24"]
+  service_endpoints    = ["Microsoft.KeyVault", "Microsoft.Storage"]
+}
+
+# Use this data source to access information about an existing vNet.
+data "azurerm_virtual_network" "selected" {
+  count = var.vnet_resource_group == null ? 0 : 1
+
+  name                = var.vnet_name
+  resource_group_name = var.vnet_resource_group
+}
+
+###################
 resource "azurerm_public_ip" "pip1" {
   name                = "lb-public-ip"
-  resource_group_name = var.resourceGroup
+  resource_group_name = local.vnet_resource_group
   location            = var.location
   allocation_method   = "Static"
   sku                 = "Standard"
@@ -29,7 +82,7 @@ resource "azurerm_public_ip" "pip1" {
 resource "azurerm_lb" "web_loadbalancer" {
   name                = "lb-web-${var.environment}-01"
   location            = var.location
-  resource_group_name = var.resourceGroup
+  resource_group_name = local.vnet_resource_group
   sku                 = "Standard"
 
   frontend_ip_configuration {
@@ -39,13 +92,13 @@ resource "azurerm_lb" "web_loadbalancer" {
 }
 
 resource "azurerm_lb_backend_address_pool" "web_lb_pool" {
-  resource_group_name = var.resourceGroup
+  resource_group_name = local.vnet_resource_group
   loadbalancer_id     = azurerm_lb.web_loadbalancer.id
   name                = "lb-backend-pool"
 }
 
 resource "azurerm_lb_probe" "web_lb_probe" {
-  resource_group_name = var.resourceGroup
+  resource_group_name = local.vnet_resource_group
   loadbalancer_id     = azurerm_lb.web_loadbalancer.id
   name                = "http-running-probe"
   port                = 80
@@ -54,7 +107,7 @@ resource "azurerm_lb_probe" "web_lb_probe" {
 }
 
 resource "azurerm_lb_rule" "web_lb_http_rule" {
-  resource_group_name            = var.resourceGroup
+  resource_group_name            = local.vnet_resource_group
   loadbalancer_id                = azurerm_lb.web_loadbalancer.id
   name                           = "lb-http-rule"
   protocol                       = "Tcp"
@@ -70,10 +123,10 @@ resource "azurerm_network_interface" "nic" {
 
   name                                      = "nic-${var.serverName}-0${count.index}"
   location                                  = var.location
-  resource_group_name                       = var.resourceGroup
+  resource_group_name                       = local.vnet_resource_group
   ip_configuration {
     name                                    = "ip-config-0${count.index}"
-    subnet_id                               = var.subnetId
+    subnet_id                               = local.subnet_id
     private_ip_address_allocation           = "Dynamic"
   }
 }
@@ -91,7 +144,7 @@ resource "azurerm_virtual_machine" "web_vm" {
 
   name                  = "vm-${var.serverName}-0${count.index}"
   location              = var.location
-  resource_group_name   = var.resourceGroup
+  resource_group_name   = local.vnet_resource_group
   network_interface_ids = [element(azurerm_network_interface.nic.*.id, count.index)]
   vm_size               = "Standard_B1ms"
 
@@ -151,13 +204,13 @@ SETTINGS
 # Use this data source to access information about an existing Resource Group.
 # We will need the Resource Group Id to scope the rbac role assignement for the VMs.
 data "azurerm_resource_group" "current" {
-  name = var.resourceGroup
+  name = local.vnet_resource_group
 }
 
 # The Service Principal that Terraform uses needs to be able to create RBAC role assignments on the defined scope.
 # I had to elevate my Terraform Service Principal to Owner in order to be able to assign the Contributor role to the VM.
 resource "azurerm_role_assignment" "rbac_role_assignment_vm" {
-  count =  var.vmNumber
+  count =  var.vm_count
    
   scope              = data.azurerm_resource_group.current.id
   role_definition_name = "Contributor"
@@ -171,7 +224,7 @@ resource "azurerm_role_assignment" "rbac_role_assignment_vm" {
 resource "azurerm_lb_nat_rule" "web_lb_nat_rule" {
   count = var.vmNumber
 
-  resource_group_name            = var.resourceGroup
+  resource_group_name            = local.vnet_resource_group
   loadbalancer_id                = azurerm_lb.web_loadbalancer.id
   name                           = "ssh-${var.serverName}-0${count.index}"
   protocol                       = "Tcp"
@@ -198,7 +251,7 @@ resource "random_string" "random" {
 # Create one storage account for VMs boot diags and everything else.
 resource "azurerm_storage_account" "storage_account" {
   name                     = "st${var.environment}${lower(random_string.random.result)}"
-  resource_group_name      = var.resourceGroup
+  resource_group_name      = local.vnet_resource_group
   location                 = var.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
@@ -206,7 +259,7 @@ resource "azurerm_storage_account" "storage_account" {
   # Restrict access to storage account endpoint to the vnet subnet via service endpoint.
   network_rules {
     default_action             = "Deny"
-    virtual_network_subnet_ids = [var.subnetId]
+    virtual_network_subnet_ids = [local.subnet_id]
   }
 
   tags = {
@@ -215,7 +268,7 @@ resource "azurerm_storage_account" "storage_account" {
   }
 }
 
-
+/*
 ########### From refactored key-vault module - TO BE INTEGRATED HERE ############
 
 # Use this data source to access information about an existing Virtual Machine.
@@ -260,3 +313,4 @@ resource "azurerm_key_vault_access_policy" "web_key_vault_access_policy" {
     "update",
   ]
 }
+*/
