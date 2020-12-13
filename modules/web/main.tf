@@ -15,6 +15,7 @@ terraform {
 
 locals {
   project                = "terraform-samples-lb-vm"
+  role                   = "web"
   vnet_location          = var.vnet_resource_group == null ? var.location : data.azurerm_virtual_network.selected[0].location
   subnet_id              = var.vnet_resource_group == null ? azurerm_subnet.default[0].id : "${data.azurerm_virtual_network.selected[0].id}/subnets/${var.subnet_name}"
   vnet_resource_group    = var.vnet_resource_group == null ? azurerm_resource_group.rg[0].name : var.vnet_resource_group
@@ -70,7 +71,6 @@ data "azurerm_virtual_network" "selected" {
   resource_group_name = var.vnet_resource_group
 }
 
-###################
 resource "azurerm_public_ip" "pip1" {
   name                = "lb-public-ip"
   resource_group_name = local.vnet_resource_group
@@ -119,9 +119,9 @@ resource "azurerm_lb_rule" "web_lb_http_rule" {
 }
 
 resource "azurerm_network_interface" "nic" {
-  count = var.vmNumber
+  count = var.vm_count
 
-  name                                      = "nic-${var.serverName}-0${count.index}"
+  name                                      = "nic-${var.server_name}-0${count.index}"
   location                                  = var.location
   resource_group_name                       = local.vnet_resource_group
   ip_configuration {
@@ -132,7 +132,7 @@ resource "azurerm_network_interface" "nic" {
 }
 
 resource "azurerm_network_interface_backend_address_pool_association" "nic_backend_address_pool_association" {
-  count = var.vmNumber
+  count = var.vm_count
   
   network_interface_id    = element(azurerm_network_interface.nic.*.id, count.index)
   ip_configuration_name   = "ip-config-0${count.index}"
@@ -140,9 +140,9 @@ resource "azurerm_network_interface_backend_address_pool_association" "nic_backe
 }
 
 resource "azurerm_virtual_machine" "web_vm" {
-  count = var.vmNumber
+  count = var.vm_count
 
-  name                  = "vm-${var.serverName}-0${count.index}"
+  name                  = "vm-${var.server_name}-0${count.index}"
   location              = var.location
   resource_group_name   = local.vnet_resource_group
   network_interface_ids = [element(azurerm_network_interface.nic.*.id, count.index)]
@@ -157,15 +157,15 @@ resource "azurerm_virtual_machine" "web_vm" {
     version   = "latest"
   }
   storage_os_disk {
-    name              = "os-disk-${var.serverName}-0${count.index}"
+    name              = "os-disk-${var.server_name}-0${count.index}"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
   os_profile {
-    computer_name  = "var.serverName-0${count.index}"
-    admin_username = var.vmAdminUser
-    admin_password = var.vmAdminPassword
+    computer_name  = "var.server_name-0${count.index}"
+    admin_username = var.vm_admin_user
+    admin_password = var.vm_admin_password
   }
   os_profile_linux_config {
     disable_password_authentication = false
@@ -186,9 +186,9 @@ resource "azurerm_virtual_machine" "web_vm" {
 }
 
 resource "azurerm_virtual_machine_extension" "custom_script" {
-  count = var.vmNumber
+  count = var.vm_count
 
-  name                 = "var.serverName-0${count.index}"
+  name                 = "var.server_name-0${count.index}"
   virtual_machine_id   = element(azurerm_virtual_machine.web_vm.*.id, count.index)
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
@@ -204,6 +204,8 @@ SETTINGS
 # Use this data source to access information about an existing Resource Group.
 # We will need the Resource Group Id to scope the rbac role assignement for the VMs.
 data "azurerm_resource_group" "current" {
+  count = var.vnet_resource_group == null ? 0 : 1
+
   name = local.vnet_resource_group
 }
 
@@ -212,7 +214,7 @@ data "azurerm_resource_group" "current" {
 resource "azurerm_role_assignment" "rbac_role_assignment_vm" {
   count =  var.vm_count
    
-  scope              = data.azurerm_resource_group.current.id
+  scope              = local.vnet_resource_group_id
   role_definition_name = "Contributor"
 
   # To figure out the referencing of principal_id of a VM in a list I had to ckeck out the VM list properties in terraform.tfstate file.
@@ -222,11 +224,11 @@ resource "azurerm_role_assignment" "rbac_role_assignment_vm" {
 
 # Creates inbound NAT rules on the LB for each VM on different frontend port but there is no target parameter to point to the VM.
 resource "azurerm_lb_nat_rule" "web_lb_nat_rule" {
-  count = var.vmNumber
+  count = var.vm_count
 
   resource_group_name            = local.vnet_resource_group
   loadbalancer_id                = azurerm_lb.web_loadbalancer.id
-  name                           = "ssh-${var.serverName}-0${count.index}"
+  name                           = "ssh-${var.server_name}-0${count.index}"
   protocol                       = "Tcp"
   frontend_port                  = "5000${count.index}"
   backend_port                   = 22
@@ -235,7 +237,7 @@ resource "azurerm_lb_nat_rule" "web_lb_nat_rule" {
 
 # Creates NAT rule association for each VM's NIC in effect completing the target part of the inbound NAT rules.
 resource "azurerm_network_interface_nat_rule_association" "nic_nat_rule_association" {
-  count = var.vmNumber
+  count = var.vm_count
 
   network_interface_id  = element(azurerm_network_interface.nic.*.id, count.index)
   ip_configuration_name = "ip-config-0${count.index}"
