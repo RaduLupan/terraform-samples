@@ -61,8 +61,3 @@ variable "vm_count" {
   type        = number
   default     = 2
 }
-
-variable "lb_backend_pool_id" {
-  description = "Backend pool ID of the load balancer"
-  type        = string
-}
