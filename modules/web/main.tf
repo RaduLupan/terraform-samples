@@ -14,8 +14,13 @@ terraform {
 }
 
 locals {
-  project                = "terraform-samples-lb-vm"
-  role                   = "web"
+  common_tags = {
+    project                = "terraform-samples-lb-vm"
+    role                   = "web"
+    environment            = var.environment
+    terraform              = true
+  }
+  
   vnet_location          = var.vnet_resource_group == null ? var.location : data.azurerm_virtual_network.selected[0].location
   subnet_id              = var.vnet_resource_group == null ? azurerm_subnet.default[0].id : "${data.azurerm_virtual_network.selected[0].id}/subnets/${var.subnet_name}"
   vnet_resource_group    = var.vnet_resource_group == null ? azurerm_resource_group.rg[0].name : var.vnet_resource_group
@@ -26,30 +31,22 @@ locals {
 resource "azurerm_resource_group" "rg" {
   count = var.vnet_resource_group == null ? 1 : 0
 
-  name     = "rg-${lower(replace(var.location, " ", ""))}-${local.project}-${var.environment}"
+  name     = "rg-${lower(replace(var.location, " ", ""))}-${local.common_tags["project"]}-${var.environment}"
   location = var.location
 
-  tags = {
-    environment = var.environment
-    project     = local.project
-    terraform   = "true"
-  }
+  tags = local.common_tags
 }
 
 # Create default vnet if var.vnet_resource_group is null
 resource "azurerm_virtual_network" "default" {
   count = var.vnet_resource_group == null ? 1 : 0
 
-  name                = "vnet-${local.project}-${var.environment}-01"
+  name                = "vnet-${local.common_tags["project"]}-${var.environment}-01"
   location            = var.location
   resource_group_name = local.vnet_resource_group
   address_space       = ["172.31.0.0/16"]
 
-  tags = {
-    environment = var.environment
-    project     = local.project
-    terraform   = "true"
-  }
+  tags = local.common_tags
 }
 
 # Create default subnet if var.vnet_resource_group is null
@@ -163,7 +160,7 @@ resource "azurerm_virtual_machine" "web_vm" {
     managed_disk_type = "Standard_LRS"
   }
   os_profile {
-    computer_name  = "var.server_name-0${count.index}"
+    computer_name  = "${var.server_name}-0${count.index}"
     admin_username = var.vm_admin_user
     admin_password = var.vm_admin_password
   }
@@ -178,11 +175,7 @@ resource "azurerm_virtual_machine" "web_vm" {
     storage_uri = join(",", azurerm_storage_account.storage_account.*.primary_blob_endpoint)
   }
 
-  tags = {
-    environment = var.environment
-    project = "${local.project}"
-    role= "${local.role}"
-  }
+  tags = local.common_tags
 }
 
 resource "azurerm_virtual_machine_extension" "custom_script" {
@@ -264,10 +257,7 @@ resource "azurerm_storage_account" "storage_account" {
     virtual_network_subnet_ids = [local.subnet_id]
   }
 
-  tags = {
-    environment = var.environment
-    project = "${local.project}"
-  }
+  tags = local.common_tags
 }
 
 /*
