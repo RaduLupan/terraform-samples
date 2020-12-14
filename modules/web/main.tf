@@ -22,42 +22,24 @@ locals {
   }
   
   vnet_location          = var.vnet_resource_group == null ? var.location : data.azurerm_virtual_network.selected[0].location
-  subnet_id              = var.vnet_resource_group == null ? azurerm_subnet.default[0].id : "${data.azurerm_virtual_network.selected[0].id}/subnets/${var.subnet_name}"
-  vnet_resource_group    = var.vnet_resource_group == null ? azurerm_resource_group.rg[0].name : var.vnet_resource_group
-  vnet_resource_group_id = var.vnet_resource_group == null ? azurerm_resource_group.rg[0].id : data.azurerm_resource_group.current[0].id
+  subnet_id              = var.vnet_resource_group == null ? module.network[0].fe_subnet_id : "${data.azurerm_virtual_network.selected[0].id}/subnets/${var.subnet_name}"
+  vnet_resource_group    = var.vnet_resource_group == null ? module.network[0].rg_name : var.vnet_resource_group
+  vnet_resource_group_id = var.vnet_resource_group == null ? module.network[0].rg_id : data.azurerm_resource_group.current[0].id
 }
 
-# Create resource group if var.vnet_resource_group is null
-resource "azurerm_resource_group" "rg" {
+# If var.vnet_resource_group is null invoke the network module to provison a vnet with a subnet and nsg.
+module "network" {
   count = var.vnet_resource_group == null ? 1 : 0
+  
+  source = "../network"
 
-  name     = "rg-${lower(replace(var.location, " ", ""))}-${local.common_tags["project"]}-${var.environment}"
-  location = var.location
-
-  tags = local.common_tags
-}
-
-# Create default vnet if var.vnet_resource_group is null
-resource "azurerm_virtual_network" "default" {
-  count = var.vnet_resource_group == null ? 1 : 0
-
-  name                = "vnet-${local.common_tags["project"]}-${var.environment}-01"
-  location            = var.location
-  resource_group_name = local.vnet_resource_group
-  address_space       = ["172.31.0.0/16"]
-
-  tags = local.common_tags
-}
-
-# Create default subnet if var.vnet_resource_group is null
-resource "azurerm_subnet" "default" {
-  count = var.vnet_resource_group == null ? 1 : 0
-
-  name                 = "default"
-  resource_group_name  = local.vnet_resource_group
-  virtual_network_name = azurerm_virtual_network.default[0].name
-  address_prefixes     = ["172.31.0.0/24"]
-  service_endpoints    = ["Microsoft.KeyVault", "Microsoft.Storage"]
+  subscription_id                = var.subscription_id
+  location                       = var.location
+  environment                    = var.environment
+  
+  vnet_address_space             = "172.31.0.0/16"
+  frontend_subnet_address_prefix = "172.31.0.0/24"
+  allowed_ssh_address_prefix     = null
 }
 
 # Use this data source to access information about an existing vNet.
