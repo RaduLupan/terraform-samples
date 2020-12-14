@@ -3,6 +3,11 @@ output "rg_name" {
   value       = azurerm_resource_group.rg.name
 }
 
+output "rg_id" {
+  description = "The ID of the resource group the vNet is in"
+  value       = azurerm_resource_group.rg.id
+}
+
 output "vnet_name" {
   description = "The name of the vNet"
   value       = azurerm_virtual_network.vnet1.name
