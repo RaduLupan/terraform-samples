@@ -15,7 +15,7 @@ terraform {
 
 locals {
   common_tags = {
-    project                = "terraform-samples-lb-vm"
+    project                = "terraform-samples-modules"
     role                   = "web"
     environment            = var.environment
     terraform              = true
@@ -25,6 +25,8 @@ locals {
   subnet_id              = var.vnet_resource_group == null ? module.network[0].fe_subnet_id : "${data.azurerm_virtual_network.selected[0].id}/subnets/${var.subnet_name}"
   vnet_resource_group    = var.vnet_resource_group == null ? module.network[0].rg_name : var.vnet_resource_group
   vnet_resource_group_id = var.vnet_resource_group == null ? module.network[0].rg_id : data.azurerm_resource_group.current[0].id
+
+  key_vault_policy_count = var.key_vault_id == null ? 0 : var.vm_count
 }
 
 # If var.vnet_resource_group is null invoke the network module to provison a vnet with a subnet and nsg.
@@ -242,29 +244,18 @@ resource "azurerm_storage_account" "storage_account" {
   tags = local.common_tags
 }
 
-/*
-########### From refactored key-vault module - TO BE INTEGRATED HERE ############
-
-# Use this data source to access information about an existing Virtual Machine.
-data "azurerm_virtual_machine" "web" {
-  count = var.vm_count
-
-  name                = "vm-${var.server_name}-${count.index}"
-  resource_group_name = var.resource_group
+# Use this data source to access the configuration of the AzureRM provider.
+data "azurerm_client_config" "current" {
+  count = var.key_vault_id == null ? 0 : 1
 }
 
 resource "azurerm_key_vault_access_policy" "web_key_vault_access_policy" {
-  count = var.vm_count
+  count = local.key_vault_policy_count
 
-  key_vault_id = azurerm_key_vault.az_key_vault.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
+  key_vault_id = var.key_vault_id
+  tenant_id    = data.azurerm_client_config.current[0].tenant_id
 
-  # In order to be able to export the identity of a VM I had to upgrade the provider version to 2.10.0.
-  # https://github.com/terraform-providers/terraform-provider-azurerm/pull/6826
-  # Also, had to check the properties of a VM in terraform.tfstate file to figure out that identity is a list, identity[0] is the first object in that list
-  # and principal_id is one of its properties.
-  # Finally, in order to resolve ${count.index} you need to enclose it in quotes, NOT the entire expresion as a Powershell user might think!
-  object_id = data.azurerm_virtual_machine.web["${count.index}"].identity[0].principal_id
+  object_id = azurerm_virtual_machine.web_vm[count.index].identity[0].principal_id
 
   key_permissions = [
     "get",
@@ -287,4 +278,3 @@ resource "azurerm_key_vault_access_policy" "web_key_vault_access_policy" {
     "update",
   ]
 }
-*/
