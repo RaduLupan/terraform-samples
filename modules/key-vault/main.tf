@@ -7,12 +7,24 @@ terraform {
 }
 
 locals {
+  resource_group     = var.resource_group == null ? azurerm_resource_group.rg[0].name : var.resource_group
+
   common_tags = {
     terraform   = true
     environment = var.environment
     project     = "terraform-samples-modules"
     role        = "key-vault"
   }
+}
+
+# Create Resource Group if var.resource_group is null
+resource "azurerm_resource_group" "rg" {
+  count = var.resource_group == null ? 1 : 0
+
+  name     = "rg-${lower(replace(var.location," ",""))}-${local.common_tags["project"]}-${local.common_tags["role"]}-${var.environment}"
+  location = var.location
+
+  tags = local.common_tags
 }
 
 # The random string needed for injecting randomness in the name for storage account, blob container and key vault.
@@ -27,7 +39,7 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_key_vault" "az_key_vault" {
   name                        = "kv-${var.environment}-${lower(random_string.random.result)}"
   location                    = var.location
-  resource_group_name         = var.resource_group
+  resource_group_name         = local.resource_group
   enabled_for_disk_encryption = true
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_enabled         = true
