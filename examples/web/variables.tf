@@ -61,3 +61,9 @@ variable "vm_count" {
   type        = number
   default     = 2
 }
+
+variable "key_vault_id" {
+  description = "The ID of an Azure Key Vault to use for the VMs"
+  type        = string
+  default     = null
+}
