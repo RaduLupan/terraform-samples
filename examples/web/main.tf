@@ -29,5 +29,7 @@ module "web" {
   vm_count                       = var.vm_count
 
   vm_admin_user                  = var.vm_admin_user
-  vm_admin_password              = var.vm_admin_password  
+  vm_admin_password              = var.vm_admin_password
+
+  key_vault_id                   = var.key_vault_id  
 }
