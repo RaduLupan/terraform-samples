@@ -8,7 +8,6 @@
 # - 1 x Storage Account used for boot diags for VMs and everything else
 # - Key Vault Access Policies for multiple existing VMs allowing them to access keys/secrets/certificates
 
-# Terraform 0.12 syntax is used so 0.12 is the minimum required version
 terraform {
   required_version = "~> 0.13.0"
 }
