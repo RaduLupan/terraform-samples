@@ -13,6 +13,11 @@ output "fe_subnet_id" {
   value       = module.network.fe_subnet_id
 }
 
+output "fe_subnet_name" {
+  description = "The ID of the frontend subnet"
+  value       = module.network.fe_subnet_name
+}
+
 output "nsg_id" {
   description = "The ID of the network security group associated with the subnet"
   value       = module.network.nsg_id
