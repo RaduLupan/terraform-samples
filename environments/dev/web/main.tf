@@ -17,13 +17,9 @@ provider "azurerm" {
 locals {
   location       = data.azurerm_virtual_network.selected.location
   vnet_name      = data.terraform_remote_state.network.outputs.vnet_name
+  subnet_name    = data.terraform_remote_state.network.outputs.fe_subnet_name
   resource_group = data.terraform_remote_state.network.outputs.rg_name
   key_vault_id   = data.terraform_remote_state.key-vault.outputs.vault_id 
-
-  # Extract subnet name from subnet_id by splitting the id and selecting the last element in the list.
-  list           = split("/", data.terraform_remote_state.network.outputs.fe_subnet_id)
-  index          = length(local.list)
-  subnet_name    = element(local.list, local.index)
 }
 
 # Use this data source to read outputs from the network layer.
