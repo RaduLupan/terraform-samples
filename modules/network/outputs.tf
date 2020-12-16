@@ -18,6 +18,11 @@ output "fe_subnet_id" {
   value       = azurerm_subnet.subnet1.id
 }
 
+output "fe_subnet_name" {
+  description = "The name of the frontend subnet"
+  value       = azurerm_subnet.subnet1.name
+}
+
 output "nsg_id" {
   description = "The ID of the network security group associated with the subnet"
   value       = azurerm_network_security_group.frontend_nsg.id
