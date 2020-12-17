@@ -5,4 +5,4 @@ This folder contains a Terraform configuration that defines a module for deployi
 ## Quick start
 
 Terraform modules are not meant to be deployed directly. Instead, they are invoked from within other Terraform configurations. 
-* See [environments/dev/cdn](../environments/dev/key-vault) and [environments/stage/cdn](../environments/stage/key-vault) for examples on how to invoke the network module from a local source.
+* See [environments/dev/cdn](../../environments/dev/cdn) and [environments/stage/cdn](../../environments/stage/cdn) for examples on how to invoke the network module from a local source.
