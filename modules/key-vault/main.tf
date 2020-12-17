@@ -21,7 +21,7 @@ locals {
 resource "azurerm_resource_group" "rg" {
   count = var.resource_group == null ? 1 : 0
 
-  name     = "rg-${lower(replace(var.location," ",""))}-${local.common_tags["project"]}-${local.common_tags["role"]}-${var.environment}"
+  name     = "rg-${local.common_tags["role"]}-${var.environment}-${lower(replace(var.location, " ", ""))}"
   location = var.location
 
   tags = local.common_tags
@@ -37,7 +37,7 @@ resource "random_string" "random" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "az_key_vault" {
-  name                        = "kv-${var.environment}-${lower(random_string.random.result)}"
+  name                        = "kv-${lower(random_string.random.result)}"
   location                    = var.location
   resource_group_name         = local.resource_group
   enabled_for_disk_encryption = true

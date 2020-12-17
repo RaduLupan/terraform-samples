@@ -21,7 +21,7 @@ locals {
 resource "azurerm_resource_group" "rg" {
   count = var.resource_group == null ? 1 : 0
 
-  name     = "rg-${lower(replace(var.location," ",""))}-${local.common_tags["project"]}-${var.environment}"
+  name     = "rg-${local.common_tags["role"]}-${var.environment}-${lower(replace(var.location, " ", ""))}"
   location = var.location
 
   tags = local.common_tags
@@ -54,7 +54,7 @@ resource "azurerm_storage_account" "storage_account" {
 }
 
 resource "azurerm_storage_container" "container" {
-  name = "${local.common_tags["project"]}-${var.environment}-${lower(replace(var.location," ",""))}-${lower(random_string.random.result)}"
+  name = "${local.common_tags["role"]}-${var.environment}-${lower(replace(var.location," ",""))}-${lower(random_string.random.result)}"
 
   # Blob access type means "anonymous read access for blobs only". 
   container_access_type = "blob"

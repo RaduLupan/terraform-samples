@@ -26,14 +26,14 @@ locals {
 resource "azurerm_resource_group" "rg" {
   count = var.resource_group == null ? 1 : 0
 
-  name     = "rg-${lower(replace(var.location, " ", ""))}-${local.common_tags["project"]}-${var.environment}"
+  name     = "rg-${local.common_tags["role"]}-${var.environment}-${lower(replace(var.location, " ", ""))}"
   location = var.location
 
   tags = local.common_tags
 }
 
 resource "azurerm_mysql_server" "mysql_server" {
-  name                = "db-mysql-${local.common_tags["project"]}-${var.environment}-01"
+  name                = "db-mysql-${local.common_tags["role"]}-01"
   location            = var.location
   resource_group_name = local.resource_group
 

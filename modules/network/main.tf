@@ -15,6 +15,7 @@ locals {
 
   common_tags = {
     project     = "terraform-samples-modules"
+    role        = "network"
     environment = var.environment
     terraform   = true
   }
@@ -26,7 +27,7 @@ locals {
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = "rg-${local.common_tags["project"]}-${var.environment}-${lower(replace(var.location, " ", ""))}"
+  name     = "rg-${local.common_tags["role"]}-${var.environment}-${lower(replace(var.location, " ", ""))}"
   location = var.location
 }
 
@@ -72,7 +73,7 @@ resource "azurerm_network_security_rule" "allow_ssh" {
 }
 
 resource "azurerm_virtual_network" "vnet1" {
-  name                = "vnet-${local.common_tags["project"]}-${var.environment}-${lower(replace(var.location, " ", ""))}-01"
+  name                = "vnet-${var.environment}-${lower(replace(var.location, " ", ""))}-01"
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
   address_space       = [var.vnet_address_space]
