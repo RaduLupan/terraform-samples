@@ -15,7 +15,13 @@ provider "azurerm" {
 }
 
 module "mysql-db" {
-  source = "../../../modules/mysql-db"
+
+  # Github source - public repository. Note that the double-slash in the Git URL after the repository name is required.
+  # Also, the v1.0.0 tag had to be pushed using:
+  # git tag -a "v1.0.0" -m "First release"
+  # git push --follow-tags
+
+  source = "github.com/RaduLupan/terraform-samples-azure//modules/mysql-db?ref=v1.0.0"
 
   subscription_id     = var.subscription_id
   location            = var.location

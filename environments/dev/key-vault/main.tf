@@ -29,8 +29,9 @@ data "terraform_remote_state" "network" {
 }
 
 module "key-vault" {
+  
   source = "../../../modules/key-vault"
-
+  
   subscription_id     = var.subscription_id
   location            = var.location
   resource_group      = local.resource_group
