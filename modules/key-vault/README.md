@@ -5,4 +5,5 @@ This folder contains a Terraform configuration that defines a module for deployi
 ## Quick start
 
 Terraform modules are not meant to be deployed directly. Instead, they are invoked from within other Terraform configurations. 
-* See [environments/dev/key-vault](../../environments/dev/key-vault) and [environments/stage/key-vault](../../environments/stage/key-vault) for examples on how to invoke the network module from a local source.
+* See [environments/dev/key-vault](../../environments/dev/key-vault) and for example on how to invoke the Key-Vault module from a local source.
+* See [environments/stage/key-vault](../../environments/stage/key-vault) for example on how to invoke the Key-Vault module from a Github source.

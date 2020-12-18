@@ -5,4 +5,5 @@ This folder contains a Terraform configuration that defines a module for deployi
 ## Quick start
 
 Terraform modules are not meant to be deployed directly. Instead, they are invoked from within other Terraform configurations. 
-* See [environments/dev/web](../environments/dev/web) and [environments/stage/web](../environments/stage/web) for examples on how to invoke the web module from a local source.
+* See [environments/dev/web](../environments/dev/web) for example on how to invoke the web module from a local source.
+* See [environments/stage/web](../environments/stage/web) for example on how to invoke the web module from a Github source.
